@@ -1,0 +1,38 @@
+---
+title: "Parkinson's cross-sectional study analysis"
+author: "Jade Pickering"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    code-summary: "Show code"
+    number-sections: true
+editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+This doc runs the analysis scripts and reports the results for the data from people with Parkinson’s (PwP) and health age-matched controls (HCs).\
+Each section sources a dedicated R script from the `scripts/` folder.
+
+## Setup
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+# Load packages
+library(tidyverse)
+library(janitor)
+library(here)
+
+# Define paths
+raw_data_dir <- here("raw_data")
+tidied_data_dir <- here("tidied_data")
+scripts_dir <- here("scripts")
+plots_dir <- here("plots")
+```
