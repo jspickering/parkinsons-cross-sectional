@@ -9,7 +9,7 @@ library(tidyverse)
 set.seed(186)  # for reproducibility
 
 demographics_q_dummy_data <- tibble(
-  `ID` = 1:30,
+  `x1` = 1:30,
   `Group` = sample(c("OC", "ICD", "PwP"), size = 30, replace = TRUE),
   `Age` = round(runif(30, min = 50, max = 75)),   # uniform ages 50–75
   `Gender` = sample(c("m", "f"), size = 30, replace = TRUE),
