@@ -36,3 +36,47 @@ tidied_data_dir <- here("tidied_data")
 scripts_dir <- here("scripts")
 plots_dir <- here("plots")
 ```
+
+## Dummy data
+
+For the purposes of writing the script I want to work with dummy data to avoid accessing the real data unnecessarily, which is stored on a network drive. Added bonus of not taking a very long time to run each time.
+
+To do:
+
+-   ~~Demographics and questionnaire data~~
+
+-   Go/No-Go
+
+-   Stop Signal task
+
+-   Eriksen Flanker
+
+-   ~~Stroop~~
+
+-   ~~Trail Making~~
+
+-   Balloon Analogue Risk Task
+
+-   Iowa Gambling Task
+
+-   Cambridge Gambling Task
+
+-   Kirby Monetary Choice Questionnaire
+
+-   ~~Barratt Impulsiveness Scale~~
+
+-   ~~Behavioural Approach/Inhibition Systems~~
+
+-   ~~UPPS-P~~
+
+```{r}
+# Run the dummy data generation
+source(generate_dummy_data.R)
+
+```
+
+## Demographics
+
+## Questionnaire
+
+## Go/No-Go
