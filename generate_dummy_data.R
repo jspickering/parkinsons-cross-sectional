@@ -8,6 +8,8 @@ library(tidyverse)
 
 set.seed(186)  # for reproducibility
 
+##### Demographics
+
 demographics_q_dummy_data <- tibble(
   `x1` = 1:30,
   `Group` = sample(c("OC", "ICD", "PwP"), size = 30, replace = TRUE),
@@ -84,3 +86,18 @@ demographics_q_dummy_data <- tibble(
 demographics_q_dummy_data
 
 write_csv(demographics_q_dummy_data, "raw_data/demographics_q_dummy_data.csv")
+
+
+##### Go/No-Go
+go_no_go_dummy_data <- tibble(
+  `x1` = seq_len(40),
+  participant = sprintf("%03d", rep(seq_len(10), each = 4)),
+  trial_num = rep(seq_len(4), times = 10),
+  # condition: 25% zeros, 75% ones, shuffled across rows
+  condition = sample(c(rep(0, times = round(0.25 * 40)),
+                       rep(1, times = 40 - round(0.25 * 40)))),
+  # reaction time between 250 and 1000 ms with 2 decimal places
+  trial_rt = round(runif(40, min = 250, max = 1000), 2),
+  # accuracy: 90% 1s, 10% 0s
+  trial_acc = sample(c(1, 0), size = 40, replace = TRUE, prob = c(0.9, 0.1))
+)
