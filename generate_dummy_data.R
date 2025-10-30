@@ -108,3 +108,5 @@ go_no_go_dummy_data <- map_dfr(seq_along(groups), function(i) {
     trial_acc = sample(c(1, 0), size = n_rows_group, replace = TRUE, prob = c(0.9, 0.1))
   )
 })
+
+write_csv(go_no_go_dummy_data, "raw_data/go_no_go_dummy_data.csv")
