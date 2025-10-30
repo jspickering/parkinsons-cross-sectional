@@ -89,15 +89,22 @@ write_csv(demographics_q_dummy_data, "raw_data/demographics_q_dummy_data.csv")
 
 
 ##### Go/No-Go
-go_no_go_dummy_data <- tibble(
-  `x1` = seq_len(40),
-  participant = sprintf("%03d", rep(seq_len(10), each = 4)),
-  trial_num = rep(seq_len(4), times = 10),
-  # condition: 25% zeros, 75% ones, shuffled across rows
-  condition = sample(c(rep(0, times = round(0.25 * 40)),
-                       rep(1, times = 40 - round(0.25 * 40)))),
-  # reaction time between 250 and 1000 ms with 2 decimal places
-  trial_rt = round(runif(40, min = 250, max = 1000), 2),
-  # accuracy: 90% 1s, 10% 0s
-  trial_acc = sample(c(1, 0), size = 40, replace = TRUE, prob = c(0.9, 0.1))
-)
+
+groups = c("PwP", "ICD", "OC", "YC")
+n_participants = 3
+trials_per_participant = 4
+n_rows_group = n_participants * trials_per_participant # 12
+
+go_no_go_dummy_data <- map_dfr(seq_along(groups), function(i) {
+  grp <- groups[i]
+  tibble(
+    group = grp,
+    x1 = seq_len(n_rows_group) + (i - 1) * n_rows_group,                # 1:12, 13:24, ...
+    participant = sprintf("%03d", rep(seq_len(length(groups) * n_participants), each = trials_per_participant))[ ( (i-1)*n_rows_group + 1) : (i*n_rows_group) ],
+    trial_num = rep(seq_len(trials_per_participant), times = n_participants),
+    condition = sample(c(rep(0, times = round(0.25 * n_rows_group)),
+                         rep(1, times = n_rows_group - round(0.25 * n_rows_group)))),
+    trial_rt = round(runif(n_rows_group, min = 250, max = 1000), 2),
+    trial_acc = sample(c(1, 0), size = n_rows_group, replace = TRUE, prob = c(0.9, 0.1))
+  )
+})
