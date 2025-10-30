@@ -80,3 +80,8 @@ source(generate_dummy_data.R)
 ## Questionnaire
 
 ## Go/No-Go
+
+```{r}
+# Run the GNG analysis code
+source(scripts/go-no-go.R)
+```
