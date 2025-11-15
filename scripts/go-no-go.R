@@ -110,40 +110,118 @@ exclusions <- bind_rows(exclusions,
 gng_data <- gng_data %>%
   filter(!participant %in% exclusions$participant)
 
-##### Accuracy: participant level
+##### Pre-processing
 
-gng_accuracy <- gng_data %>%
-  group_by(participant, group) %>%
-  summarise(
-    commission_error_perc = mean(trial_acc[condition == "0"] == 0, na.rm = TRUE) * 100,
-    omission_error_perc = mean(trial_acc[condition == "1"] == 0, na.rm = TRUE) * 100,
-    .groups = "drop"
-  )
-
-
-##### RT: participant level
-
-# just keep trials with correct Go and failed No-Go trials
-gng_rt <- gng_data %>%
+# label trial types
+gng_data <- gng_data %>%
   mutate(trial_type = if_else((condition == 1 & trial_acc == 1), "correct_go",
-                              if_else((condition == 0 & trial_acc == 0), "failed_nogo",
-                                      "other")))
+                              if_else((condition == 1 & trial_acc == 0), "omitted_go",
+                                      if_else((condition == 0 & trial_acc == 0), "failed_nogo",
+                                              if_else((condition == 0 & trial_acc == 1), "correct_nogo",
+                                      "other")))),
+         trial_type = as.character(trial_type))
 
-gng_rt_correct_go <- gng_rt %>%
-  filter(trial_type == "correct_go")
 
-gng_rt_failed_nogo <- gng_rt %>%
-  filter(trial_type == "failed_nogo")
+# for RT just keep trials with correct Go and failed No-Go trials
+gng_rt <- gng_data %>%
+  filter(trial_type == "correct_go" |
+           trial_type == "failed_nogo")
 
-# This will apply the Van Selst & Jolicoeur-style trimming per participant and per condition
+# gng_rt_correct_go <- gng_rt %>%
+#   filter(trial_type == "correct_go")
+# 
+# gng_rt_failed_nogo <- gng_rt %>%
+#   filter(trial_type == "failed_nogo")
+
+
+##### Van Selst & Jolicoeur trimming per participant and per condition
+
 gng_rt_trimmed <- nonRecursive(
-  data      = gng_rt_correct_go,
+  data      = gng_rt,
   pptVar    = "participant",
   condVar   = "trial_type",
   rtVar     = "trial_rt",
   accVar    = "trial_acc",
-  minRT     = anticipatory_rt,
+  minRT     = 150,
   digits    = 0,
   returnType = "raw"
 )
+
+## as the above doesn't work yet, just use this for testing the remaining code:
+#gng_rt_trimmed <- gng_rt
+
+
+##### PRE-PROCESSING: Group level
+# Calculate mean RTs for each condition and for each participant
+
+gng_summary_rts <- gng_rt_trimmed %>%
+  group_by(group,
+           trial_type,
+           participant) %>%
+  summarise(rt_mean = mean(trial_rt),
+            rt_sd = sd(trial_rt))
+
+# Calculate mean accuracy for each condition and for each participant
+# omission errors = % of go trials on which participants didn't respond)
+# commission errors = % of no-go trials on which ppts failed to withold response)
+
+gng_summary_acc <- gng_data %>%
+  mutate(condition = as.character(condition)) %>%
+  group_by(group, participant) %>%
+  summarise(
+    # sum all Go trials where there was no response
+    omission_errors = sum(trial_type == "omitted_go" & condition == "1", na.rm = TRUE)
+    # and divide it by sum of all Go trials and turn proportion into a percentage
+    / sum(condition == "1") * 100,
+    # sum all NoGo trials where there was a response (failed nogo)
+    commission_errors = sum(trial_type == "failed_nogo" & condition == "0", na.rm = TRUE)
+    # and divide it by sum of all Nogo trials and turn proportion into a percentage
+    / sum(condition == "0") * 100
+  )
+
+
+##### Tukey outlier removal
+
+# calculate outliers
+gng_tukey <- gng_summary_rts %>%
+  group_by(group,
+           condition) %>%
+  mutate(
+    q1 = quantile(rt_mean, 0.25, na.rm = TRUE),
+    q3 = quantile(rt_mean, 0.75, na.rm = TRUE),
+    upper_bound = q3 + (3 * (q3 - q1)),
+    lower_bound = q1 - (3 * (q3 - q1)),
+    is_outlier = (rt_mean < lower_bound) | (rt_mean > upper_bound)
+  ) %>%
+  ungroup()
+
+# identify outliers and add to exclusion table
+exc_tukey <- gng_tukey %>%
+  filter(is_outlier) %>%
+  transmute(
+    participant,
+    group,
+    reason = "Tukey's outlier removal"
+    )
+
+# put exclusions into the main exclusions table
+exclusions <- bind_rows(exclusions,
+                        exc_tukey)
+
+# remove outliers from df
+
+gng_summary_rts_outliers_removed <- gng_tukey %>%
+  filter(!is_outlier) %>%
+  select(-q1,
+         -q3,
+         -upper_bound,
+         -lower_bound,
+         -is_outlier)
+
+# # Tidy up the environment so that everything is easier to manage
+# gdata::keep(exclusions,
+#             gng_summary_rts_outliers_removed,
+#             gng_summary_acc,
+#             sure = TRUE)
+
 
