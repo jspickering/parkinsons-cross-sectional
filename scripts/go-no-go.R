@@ -68,6 +68,10 @@ gng_data <- gng_raw %>%
   # participant 082 was mislabelled as 083 (see researcher notes on participant pack)
   mutate(participant = if_else((participant == "083" & group == "PWP"), "082",
                                participant)) %>%
+  # and participant 072 was coded as 'NA' despite the participant number being in the original file
+  # have verified it manually
+  mutate(participant = if_else((is.na(participant) & group == "PWP"), "072",
+                               participant)) %>%
   # only keep the columns we're interested in
   select(participant,
          group,
@@ -218,10 +222,96 @@ gng_summary_rts_outliers_removed <- gng_tukey %>%
          -lower_bound,
          -is_outlier)
 
+# get wide and long versions of both separately, and joined 
+gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
+  select(group, participant, trial_type, rt_mean) %>%
+  pivot_wider(
+    names_from  = trial_type,
+    values_from = rt_mean
+  ) %>%
+  rename(mean_rt_correct_go = correct_go,
+         mean_rt_failed_nogo = failed_nogo)
+
+gng_summary_acc_wide <- gng_summary_acc
+
+gng_summary_wide <- gng_summary_acc %>%
+  full_join(gng_summary_rts_wide)
+
+gng_summary_rts_long <- gng_summary_rts_outliers_removed %>%
+  select(-`rt_sd`) %>%
+  rename(measure = trial_type,
+         value = rt_mean)
+
+gng_summary_acc_long <- gng_summary_acc %>%
+  pivot_longer(
+    cols = c(
+      omission_errors,
+      commission_errors
+    ),
+    names_to = "measure",
+    values_to = "value"
+  )
+  
+gng_summary_long <- gng_summary_acc_long %>%
+  full_join(gng_summary_rts_long)
+
 # # Tidy up the environment so that everything is easier to manage
 # gdata::keep(exclusions,
-#             gng_summary_rts_outliers_removed,
-#             gng_summary_acc,
+#             gng_summary_rts_wide,
+#             gng_summary_acc_wide,
+#             gng_summary_wide,
+#             gng_summary_rts_long,
+#             gng_summary_acc_long,
+#             gng_summary_long
 #             sure = TRUE)
 
+##### Testing for normality
+
+normality_plots_rts <- ggplot(gng_summary_rts_long, aes(value)) +
+  geom_histogram() +
+  facet_grid(measure ~ group, scales = "free") +
+  labs(
+    title = "Histograms of RTs"
+  )
+normality_plots_rts
+
+# Shapiro-Wilk tests
+normality_summary <- gng_summary_rts_long %>%
+  #filter(measure %in% c("correct_go", "failed_nogo")) %>%
+  group_by(group, measure) %>%
+  summarise(
+    p_value = shapiro.test(value)$p.value,
+    .groups = "drop"
+  )
+
+# if any of the measures in the normality_summary df are < 0.05 then we need to transform them
+gng_summary_rts_long <- gng_summary_rts_long %>%
+  mutate(value_log10 = log10(value))
+
+######################
+# SUMMARY STATISTICS #
+######################
+
+# summary statistics table (means)
+gng_stats <- gng_summary_long %>%
+  group_by(group, measure) %>%
+  summarise(
+    mean = mean(value, na.rm = TRUE),
+    sd   = sd(value,   na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# summary statistics table (ppts left for each measure within each group)
+gng_counts <- processed_data %>%
+  group_by(group) %>%
+  summarise_at(vars(omission,
+                    commission,
+                    go_rt,
+                    nogo_rt),
+               funs(sum(!is.na(.))))
+
+
+#########
+# PLOTS #
+#########
 
