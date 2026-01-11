@@ -16,6 +16,10 @@ for(p in requiredPackages){
   library(p,character.only = TRUE)
 }
 
+# to get the raincloud plots working again
+source("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
+
+
 # task info
 expected_trials = 360
 trial_threshold = 0.8
@@ -93,7 +97,12 @@ gng_data <- gng_raw %>%
   filter(group != "YC") %>%
   # recode misses as an accuracy of 0
   mutate(trial_acc = as.numeric(if_else(trial_acc == "miss", "0",
-                              trial_acc)))
+                              trial_acc))) %>%
+  mutate(group = if_else(group == "PWP", "PwP",
+                              if_else(group == "ICD", "PwP+ICB",
+                                      if_else(group == "OC", "HC", "error"))))
+
+
 
 ##### Look for exclusions
 
@@ -140,19 +149,26 @@ gng_rt <- gng_data %>%
 
 ##### Van Selst & Jolicoeur trimming per participant and per condition
 
-gng_rt_trimmed <- nonRecursive(
-  data      = gng_rt,
-  pptVar    = "participant",
-  condVar   = "trial_type",
-  rtVar     = "trial_rt",
-  accVar    = "trial_acc",
-  minRT     = 150,
-  digits    = 0,
-  returnType = "raw"
-)
+# need to handle the fact that this method usually only includes trimming correct trials
+# but here the failed_nogos are 'incorrect' but important
 
-## as the above doesn't work yet, just use this for testing the remaining code:
-#gng_rt_trimmed <- gng_rt
+# gng_rt <- gng_rt %>%
+#   mutate(acc_dummy = 1)  # all trials will be treated as "correct" for trimming
+# 
+# gng_rt_trimmed <- nonRecursive(
+#   data      = gng_rt,
+#   pptVar    = "participant",
+#   condVar   = "trial_type",
+#   rtVar     = "trial_rt",
+#   accVar    = "acc_dummy",
+#   minRT     = 150,
+#   digits    = 0,
+#   returnType = "raw"
+# )
+
+## as the above is overzealous and RTs aren't the main variable of interest, going with non-trimmed data as a deviation from protocol
+gng_rt_trimmed <- gng_rt
+
 
 
 ##### PRE-PROCESSING: Group level
@@ -184,12 +200,16 @@ gng_summary_acc <- gng_data %>%
   )
 
 
+test <- gng_data %>%
+  select(condition)
+
+
 ##### Tukey outlier removal
 
 # calculate outliers
 gng_tukey <- gng_summary_rts %>%
   group_by(group,
-           condition) %>%
+           trial_type) %>%
   mutate(
     q1 = quantile(rt_mean, 0.25, na.rm = TRUE),
     q3 = quantile(rt_mean, 0.75, na.rm = TRUE),
@@ -205,7 +225,9 @@ exc_tukey <- gng_tukey %>%
   transmute(
     participant,
     group,
-    reason = "Tukey's outlier removal"
+    reason = paste0(
+      "RT removed just for the following condition due to Tukey's outlier removal (", trial_type, ")"
+    )
     )
 
 # put exclusions into the main exclusions table
@@ -235,7 +257,7 @@ gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
 gng_summary_acc_wide <- gng_summary_acc
 
 gng_summary_wide <- gng_summary_acc %>%
-  full_join(gng_summary_rts_wide)
+  full_join(gng_summary_rts_wide, by = c("participant", "group"))
 
 gng_summary_rts_long <- gng_summary_rts_outliers_removed %>%
   select(-`rt_sd`) %>%
@@ -253,10 +275,12 @@ gng_summary_acc_long <- gng_summary_acc %>%
   )
   
 gng_summary_long <- gng_summary_acc_long %>%
-  full_join(gng_summary_rts_long)
+  full_join(gng_summary_rts_long, by = c("participant", "group", "measure", "value"))
+
 
 # # Tidy up the environment so that everything is easier to manage
 # gdata::keep(exclusions,
+#             gng_raw
 #             gng_summary_rts_wide,
 #             gng_summary_acc_wide,
 #             gng_summary_wide,
@@ -277,7 +301,6 @@ normality_plots_rts
 
 # Shapiro-Wilk tests
 normality_summary <- gng_summary_rts_long %>%
-  #filter(measure %in% c("correct_go", "failed_nogo")) %>%
   group_by(group, measure) %>%
   summarise(
     p_value = shapiro.test(value)$p.value,
@@ -287,6 +310,15 @@ normality_summary <- gng_summary_rts_long %>%
 # if any of the measures in the normality_summary df are < 0.05 then we need to transform them
 gng_summary_rts_long <- gng_summary_rts_long %>%
   mutate(value_log10 = log10(value))
+
+# check that the transformation make the data normal now
+normality_summary <- gng_summary_rts_long %>%
+  group_by(group, measure) %>%
+  summarise(
+    p_value = shapiro.test(value_log10)$p.value,
+    .groups = "drop"
+  )
+
 
 ######################
 # SUMMARY STATISTICS #
@@ -301,17 +333,105 @@ gng_stats <- gng_summary_long %>%
     .groups = "drop"
   )
 
-# summary statistics table (ppts left for each measure within each group)
-gng_counts <- processed_data %>%
-  group_by(group) %>%
-  summarise_at(vars(omission,
-                    commission,
-                    go_rt,
-                    nogo_rt),
-               funs(sum(!is.na(.))))
-
 
 #########
 # PLOTS #
 #########
 
+gng_summary_wide <- gng_summary_wide %>%
+ mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
+
+### Commission errors
+
+w = 4
+h = 5 
+
+p1 <- ggplot(gng_summary_wide, aes(x = group, y = commission_errors, fill = group, colour = group)) +
+  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size= .5) +
+  geom_point(aes(x = group, y = commission_errors, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  geom_boxplot(aes(x = group, y = commission_errors, fill = group), position = position_nudge(x = c(.22,.22), y = 0), outlier.shape=NA, alpha = .8, width = .1, colour = "black", size =.4) +
+  ylab("Commission errors (%)")+
+  xlab("")+
+  cowplot::theme_cowplot()+
+  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5)+
+  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5)+
+  scale_y_continuous(breaks = seq(0, 60, 10),
+                     limits = c(0, 60)) +
+  #                    labels = c(-20,"",0,"",20,"",40,"",60,"",80,"",100))+
+  #scale_x_discrete(labels=c("PwP", "PwP+ICBs", "HCs"))+
+  theme(axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=10),
+        axis.title.x = element_text(size=11),
+        axis.title.y = element_text(size=11),
+        legend.position = "none")
+p1
+
+#ggsave('figs/gng_commission.png', width = w, height = h)
+
+
+###########################
+# INFERENTIAL STATISTICS #
+#  Confirmatory analysis  #
+###########################
+
+# subset data for pairwise comparisons
+pwp_hc_data <- gng_summary_wide %>%
+  filter(group == "PwP" |
+           group == "HC")
+
+pwp_icd_data <- gng_summary_wide %>%
+  filter(group == "PwP" |
+           group == "PwP+ICB")
+
+# COMMISSION ERRORS
+# kruskal-wallis
+commission_errors_kw <- kruskal.test(commission_errors ~ group, data = gng_summary_wide) %>%
+  broom::tidy()
+
+# mann-whitney u tests (named as wilcoxon in R, but this is independent samples version)
+pwp_hc_commission_mwu <- wilcox.test(commission_errors ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+pwp_icd_commission_mwu <- wilcox.test(commission_errors ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+
+###########################
+# INFERENTIAL STATISTICS #
+#   Exploratory analysis  #
+###########################
+
+### GO RT
+
+# variance test
+pwp_hc_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_hc_data) %>%
+  broom::tidy() 
+pwp_icd_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_icd_data) %>%
+  broom::tidy() 
+
+# anova
+go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_summary_wide) %>%
+  broom::tidy() 
+
+# t-tests
+pwp_hc_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+  broom::tidy() 
+pwp_icd_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+  broom::tidy() 
+
+
+### NO-GO RT
+
+# variance test
+pwp_hc_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data) %>%
+  broom::tidy() 
+pwp_icd_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data) %>%
+  broom::tidy() 
+
+# anova
+nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_summary_wide) %>%
+  broom::tidy() 
+
+# t-tests
+pwp_hc_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+  broom::tidy() 
+pwp_icd_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+  broom::tidy() 
