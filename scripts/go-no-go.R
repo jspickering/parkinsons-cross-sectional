@@ -161,7 +161,7 @@ gng_rt <- gng_data %>%
 #   condVar   = "trial_type",
 #   rtVar     = "trial_rt",
 #   accVar    = "acc_dummy",
-#   minRT     = 150,
+#   minRT     = anticipatory_rt,
 #   digits    = 0,
 #   returnType = "raw"
 # )
@@ -178,8 +178,8 @@ gng_summary_rts <- gng_rt_trimmed %>%
   group_by(group,
            trial_type,
            participant) %>%
-  summarise(rt_mean = mean(trial_rt),
-            rt_sd = sd(trial_rt))
+  summarise(rt_mean = mean(trial_rt, na.rm = TRUE),
+            rt_sd = sd(trial_rt, na.rm = TRUE))
 
 # Calculate mean accuracy for each condition and for each participant
 # omission errors = % of go trials on which participants didn't respond)
