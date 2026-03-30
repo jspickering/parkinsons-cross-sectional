@@ -110,3 +110,40 @@ go_no_go_dummy_data <- map_dfr(seq_along(groups), function(i) {
 })
 
 write_csv(go_no_go_dummy_data, "raw_data/go_no_go_dummy_data.csv")
+
+
+##### Stop Signal Task
+
+groups <- c("PWP", "ICD", "OC", "YC")
+n_participants <- 3
+trials_per_participant <- 384  # pre-reg: 384 trials per participant
+n_rows_group <- n_participants * trials_per_participant
+
+sst_dummy_data <- map_dfr(seq_along(groups), function(i) {
+  grp <- groups[i]
+  tibble(
+    group       = grp,
+    participant = sprintf("%03d", rep(seq_len(length(groups) * n_participants), each = trials_per_participant))[ ((i-1)*n_rows_group + 1) : (i*n_rows_group) ],
+    condition   = rep(sample(c(rep("go",   times = round(0.75 * trials_per_participant)),
+                               rep("stop", times = round(0.25 * trials_per_participant)))),
+                      times = n_participants),
+    trialType   = sample(1:4, size = n_rows_group, replace = TRUE),  # 1=go-left, 2=go-right, 3=stop-left, 4=stop-right (plausible - check against real data)
+    keyPressed  = sample(c("m", "z", NA), size = n_rows_group, replace = TRUE, prob = c(0.45, 0.45, 0.10)),
+    blockNum    = rep(rep(1:4, each = trials_per_participant / 4), times = n_participants),
+    trialNum    = rep(rep(1:(trials_per_participant / 4), times = 4), times = n_participants),
+    ISI         = round(runif(n_rows_group, min = 250, max = 500), 3),
+    SSD         = if_else(condition == "stop", round(runif(n_rows_group, min = 5, max = 1505), 0), NA_real_),
+    trialStart  = runif(n_rows_group, min = 2e-06, max = 1e-05),
+    respTime    = round(runif(n_rows_group, min = 0.3, max = 0.9), 15),
+    trialRT     = if_else(keyPressed %in% c("m", "z"), round(runif(n_rows_group, min = 200, max = 900), 3), NA_real_),
+    trialAcc    = case_when(
+      condition == "go"   & !is.na(keyPressed) ~ sample(c("correct", "incorrect arrow"), n_rows_group, replace = TRUE, prob = c(0.92, 0.08)),
+      condition == "go"   &  is.na(keyPressed) ~ "missed arrow",
+      condition == "stop" &  is.na(keyPressed) ~ "successful stop",
+      condition == "stop" & !is.na(keyPressed) ~ "failed stop"
+    )
+  )
+})
+
+write_csv(sst_dummy_data, "raw_data/stop_signal_task_dummy_data.csv")
+
