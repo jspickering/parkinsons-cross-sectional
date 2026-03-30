@@ -1,7 +1,7 @@
 ############################################################################################################
 # Script for analysis of the Go/No-Go task according to the pre-registration on the Open Science Framework #
 # Link:                                                                                                    #
-# Authors: Jade Pickering & Marta Majewska, 2020                                                           #
+# Authors: Jade Pickering & Marta Majewska, 2020-2026                                                           #
 ############################################################################################################
 
 ##########
@@ -167,8 +167,10 @@ gng_rt <- gng_data %>%
 # )
 
 ## as the above is overzealous and RTs aren't the main variable of interest, going with non-trimmed data as a deviation from protocol
-gng_rt_trimmed <- gng_rt
+## except for anticipatory RTs
 
+gng_rt_trimmed <- gng_rt %>%
+  filter(trial_rt >= anticipatory_rt | is.na(trial_rt))
 
 
 ##### PRE-PROCESSING: Group level
@@ -199,9 +201,6 @@ gng_summary_acc <- gng_data %>%
     / sum(condition == "0") * 100
   )
 
-
-test <- gng_data %>%
-  select(condition)
 
 
 ##### Tukey outlier removal
@@ -435,3 +434,4 @@ pwp_hc_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data, 
   broom::tidy() 
 pwp_icd_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
   broom::tidy() 
+
