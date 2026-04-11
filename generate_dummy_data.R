@@ -115,35 +115,76 @@ write_csv(go_no_go_dummy_data, "raw_data/go_no_go_dummy_data.csv")
 ##### Stop Signal Task
 
 groups <- c("PWP", "ICD", "OC", "YC")
-n_participants <- 3
-trials_per_participant <- 384  # pre-reg: 384 trials per participant
-n_rows_group <- n_participants * trials_per_participant
+n_per_group   <- 5     # more participants so exclusions don't wipe out the dataset
+total_trials  <- 384   # pre-reg: 384 trials per participant
+n_stop        <- round(total_trials * 0.25)  # 96 stop trials
+n_go          <- total_trials - n_stop       # 288 go trials
 
-sst_dummy_data <- map_dfr(seq_along(groups), function(i) {
-  grp <- groups[i]
-  tibble(
-    group       = grp,
-    participant = sprintf("%03d", rep(seq_len(length(groups) * n_participants), each = trials_per_participant))[ ((i-1)*n_rows_group + 1) : (i*n_rows_group) ],
-    condition   = rep(sample(c(rep("go",   times = round(0.75 * trials_per_participant)),
-                               rep("stop", times = round(0.25 * trials_per_participant)))),
-                      times = n_participants),
-    trialType   = sample(1:4, size = n_rows_group, replace = TRUE),  # 1=go-left, 2=go-right, 3=stop-left, 4=stop-right (plausible - check against real data)
-    keyPressed  = sample(c("m", "z", NA), size = n_rows_group, replace = TRUE, prob = c(0.45, 0.45, 0.10)),
-    blockNum    = rep(rep(1:4, each = trials_per_participant / 4), times = n_participants),
-    trialNum    = rep(rep(1:(trials_per_participant / 4), times = 4), times = n_participants),
-    ISI         = round(runif(n_rows_group, min = 250, max = 500), 3),
-    SSD         = if_else(condition == "stop", round(runif(n_rows_group, min = 5, max = 1505), 0), NA_real_),
-    trialStart  = runif(n_rows_group, min = 2e-06, max = 1e-05),
-    respTime    = round(runif(n_rows_group, min = 0.3, max = 0.9), 15),
-    trialRT     = if_else(keyPressed %in% c("m", "z"), round(runif(n_rows_group, min = 200, max = 900), 3), NA_real_),
-    trialAcc    = case_when(
-      condition == "go"   & !is.na(keyPressed) ~ sample(c("correct", "incorrect arrow"), n_rows_group, replace = TRUE, prob = c(0.92, 0.08)),
-      condition == "go"   &  is.na(keyPressed) ~ "missed arrow",
-      condition == "stop" &  is.na(keyPressed) ~ "successful stop",
-      condition == "stop" & !is.na(keyPressed) ~ "failed stop"
-    )
+generate_sst_participant <- function(pid, grp) {
+  # trialType: 1=leftGo, 2=rightGo, 3=leftStop, 4=rightStop
+  # condition is derived from trialType so the two columns are always consistent
+  trial_types <- sample(c(sample(1:2, n_go,   replace = TRUE),
+                           sample(3:4, n_stop, replace = TRUE)))
+  condition   <- if_else(trial_types %in% 1:2, "go", "stop")
+
+  # Go trial outcomes: ~93% correct, ~5% wrong arrow, ~2% missed
+  # Stop trial outcomes: ~50% successful stop (keeps stop accuracy within the 25–75% exclusion window)
+  go_outcomes   <- sample(c("correct", "wrong arrow", "missed"), n_go,   replace = TRUE, prob = c(0.93, 0.05, 0.02))
+  stop_outcomes <- sample(c("successful stop", "failed stop"),   n_stop, replace = TRUE, prob = c(0.50, 0.50))
+
+  outcomes              <- character(total_trials)
+  outcomes[condition == "go"]   <- go_outcomes
+  outcomes[condition == "stop"] <- stop_outcomes
+
+  # keyPressed: "z" for left trials, "m" for right trials, "0" for no response
+  correct_key <- if_else(trial_types %in% c(1, 3), "z", "m")
+  wrong_key   <- if_else(correct_key == "z", "m", "z")
+  key_pressed <- case_when(
+    outcomes == "correct"        ~ correct_key,
+    outcomes == "wrong arrow"    ~ wrong_key,
+    outcomes %in% c("missed", "successful stop") ~ "0",
+    outcomes == "failed stop"    ~ correct_key   # responded despite the stop signal
   )
-})
+
+  # trialRT in ms: realistic go/failed-stop RTs centred ~450 ms; NA when no response
+  # Mean SSD ~250 ms → SSRT ≈ 450 – 250 = 200 ms, well above the 50 ms exclusion floor
+  has_response        <- key_pressed != "0"
+  trial_rt            <- rep(NA_real_, total_trials)
+  trial_rt[has_response] <- pmax(round(rnorm(sum(has_response), mean = 450, sd = 80)), 151)
+
+  # SSD present on every row (only meaningful on stop trials per pre-reg, but always recorded)
+  ssd         <- round(runif(total_trials, min = 150, max = 350))
+  trial_start <- runif(total_trials, min = 2e-6, max = 1e-5)
+  resp_time   <- rep(0, total_trials)
+  resp_time[has_response] <- trial_start[has_response] + trial_rt[has_response] / 1000
+
+  tibble(
+    participant = pid,
+    group       = grp,
+    condition   = condition,
+    trialType   = trial_types,
+    keyPressed  = key_pressed,
+    blockNum    = rep(1:4, each = total_trials / 4),
+    trialNum    = rep(seq_len(total_trials / 4), times = 4),
+    ISI         = round(runif(total_trials, min = 250, max = 500)),
+    SSD         = ssd,
+    trialStart  = round(trial_start, 6),
+    respTime    = round(resp_time, 6),
+    trialRT     = trial_rt,
+    trialAcc    = outcomes
+  )
+}
+
+sst_participants <- tibble(
+  participant = sprintf("%03d", seq_len(length(groups) * n_per_group)),
+  group       = rep(groups, each = n_per_group)
+)
+
+sst_dummy_data <- map2_dfr(
+  sst_participants$participant,
+  sst_participants$group,
+  generate_sst_participant
+)
 
 write_csv(sst_dummy_data, "raw_data/stop_signal_task_dummy_data.csv")
 
