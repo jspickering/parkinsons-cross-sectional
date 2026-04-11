@@ -208,58 +208,40 @@ exclusions <- bind_rows(exclusions,
 #   filter(!participant %in% exclusions$participant)
 
 
-##### Pre-processing
+##### RT trimming (Van Selst & Jolicoeur non-recursive method)
 
+sst_go_rt <- sst_data %>%
+  filter(condition == "go",
+         trial_acc != "missed") %>% # removed missed trials (no RT)
+  mutate(acc_for_trimr = 1) # trimr expects numeric data, and we're including wrong arrows in the trimming
 
+sst_go_rt_trimmed <- nonRecursive(
+  data       = sst_go_rt,
+  pptVar     = "participant",
+  condVar    = "condition",
+  rtVar      = "trial_rt",
+  accVar     = "acc_for_trimr",
+  minRT      = anticipatory_rt,
+  digits     = 0,
+  returnType = "raw"
+)
 
+# Failed stop trials - all treated as one condition for trimming
+sst_failed_stop_rt <- sst_data %>%
+  filter(condition == "stop",
+         trial_acc == "failed stop") %>%
+  mutate(acc_for_trimr = 1)
 
-
-# label trial types
-gng_data <- gng_data %>%
-  mutate(trial_type = if_else((condition == 1 & trial_acc == 1), "correct_go",
-                              if_else((condition == 1 & trial_acc == 0), "omitted_go",
-                                      if_else((condition == 0 & trial_acc == 0), "failed_nogo",
-                                              if_else((condition == 0 & trial_acc == 1), "correct_nogo",
-                                                      "other")))),
-         trial_type = as.character(trial_type))
-
-
-# for RT just keep trials with correct Go and failed No-Go trials
-gng_rt <- gng_data %>%
-  filter(trial_type == "correct_go" |
-           trial_type == "failed_nogo")
-
-# gng_rt_correct_go <- gng_rt %>%
-#   filter(trial_type == "correct_go")
-# 
-# gng_rt_failed_nogo <- gng_rt %>%
-#   filter(trial_type == "failed_nogo")
-
-
-##### Van Selst & Jolicoeur trimming per participant and per condition
-
-# need to handle the fact that this method usually only includes trimming correct trials
-# but here the failed_nogos are 'incorrect' but important
-
-# gng_rt <- gng_rt %>%
-#   mutate(acc_dummy = 1)  # all trials will be treated as "correct" for trimming
-# 
-# gng_rt_trimmed <- nonRecursive(
-#   data      = gng_rt,
-#   pptVar    = "participant",
-#   condVar   = "trial_type",
-#   rtVar     = "trial_rt",
-#   accVar    = "acc_dummy",
-#   minRT     = anticipatory_rt,
-#   digits    = 0,
-#   returnType = "raw"
-# )
-
-## as the above is overzealous and RTs aren't the main variable of interest, going with non-trimmed data as a deviation from protocol
-## except for anticipatory RTs
-
-gng_rt_trimmed <- gng_rt %>%
-  filter(trial_rt >= anticipatory_rt | is.na(trial_rt))
+sst_failed_stop_rt_trimmed <- nonRecursive(
+  data       = sst_failed_stop_rt,
+  pptVar     = "participant",
+  condVar    = "condition",
+  rtVar      = "trial_rt",
+  accVar     = "acc_for_trimr",
+  minRT      = anticipatory_rt,
+  digits     = 0,
+  returnType = "raw"
+)
 
 
 ##### PRE-PROCESSING: Group level
