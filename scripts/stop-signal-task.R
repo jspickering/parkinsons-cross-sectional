@@ -175,8 +175,8 @@ exclusions <- bind_rows(exclusions,
 ssrt_data <- sst_data %>%
   group_by(group, participant) %>%
   summarise(
-    # stop accuracy = proportion of stop trials where participant successfully stopped
-    stop_acc = sum(condition == "stop" & trial_acc == "successful stop") / sum(condition == "stop"),
+    # proportion of stop trials on which participant failed to stop
+    prop_failed_stops = sum(condition == "stop" & trial_acc == "failed stop") / sum(condition == "stop"),
     # mean SSD across all stop trials
     mean_ssd = mean(ssd[condition == "stop"], na.rm = TRUE),
     # nth percentile of the go RT distribution
@@ -185,7 +185,7 @@ ssrt_data <- sst_data %>%
       x     = if_else(condition == "go" & is.na(trial_rt),
                       max(trial_rt, na.rm = TRUE),   # replace omissions with max RT
                       trial_rt),
-      probs = stop_acc,                              # nth percentile where n = stop accuracy
+      probs = prop_failed_stops,                     # nth percentile where n = proportion of failed stops
       na.rm = TRUE                                   # na.rm still needed to handle stop trial NAs in the vector
     ),
     .groups = "drop"
