@@ -180,7 +180,7 @@ ssrt_data <- sst_data %>%
     # nth percentile of the go RT distribution
     # for omitted go trials, replace NA with the participant's max RT (Verbruggen et al., 2019)
     nth_percentile_go_rt = quantile(
-      x     = if_else(condition == "go" & is.na(trial_rt),
+      x = if_else(condition == "go" & is.na(trial_rt),
                       max(trial_rt, na.rm = TRUE),   # replace omissions with max RT
                       trial_rt),
       probs = prop_failed_stops,                     # nth percentile where n = proportion of failed stops
@@ -215,86 +215,72 @@ sst_rt_for_trimming <- sst_data %>%
   mutate(acc_for_trimr = if_else(trial_acc == "wrong arrow", 0, 1)) # wrong arrows treated as errors
 
 sst_rt_trimmed <- nonRecursive(
-  data       = sst_rt_for_trimming,
-  pptVar     = "participant",
-  condVar    = "condition",
-  rtVar      = "trial_rt",
-  accVar     = "acc_for_trimr",
-  minRT      = anticipatory_rt,
-  digits     = 0,
+  data = sst_rt_for_trimming,
+  pptVar = "participant",
+  condVar = "condition",
+  rtVar = "trial_rt",
+  accVar = "acc_for_trimr",
+  minRT = anticipatory_rt,
+  digits = 0,
   returnType = "raw"
 )
 
 
 ##### PRE-PROCESSING: Group level
-# Calculate mean RTs for each condition and for each participant
 
-gng_summary_rts <- gng_rt_trimmed %>%
+# Mean RT per participant per condition
+sst_summary_rts <- sst_rt_trimmed %>%
   group_by(group,
-           trial_type,
-           participant) %>%
-  summarise(rt_mean = mean(trial_rt, na.rm = TRUE),
-            rt_sd = sd(trial_rt, na.rm = TRUE))
-
-# Calculate mean accuracy for each condition and for each participant
-# omission errors = % of go trials on which participants didn't respond)
-# commission errors = % of no-go trials on which ppts failed to withold response)
-
-gng_summary_acc <- gng_data %>%
-  mutate(condition = as.character(condition)) %>%
-  group_by(group, participant) %>%
+           participant,
+           condition,
+           trial_acc) %>%
   summarise(
-    # sum all Go trials where there was no response
-    omission_errors = sum(trial_type == "omitted_go" & condition == "1", na.rm = TRUE)
-    # and divide it by sum of all Go trials and turn proportion into a percentage
-    / sum(condition == "1") * 100,
-    # sum all NoGo trials where there was a response (failed nogo)
-    commission_errors = sum(trial_type == "failed_nogo" & condition == "0", na.rm = TRUE)
-    # and divide it by sum of all Nogo trials and turn proportion into a percentage
-    / sum(condition == "0") * 100
+    rt_mean = mean(trial_rt, na.rm = TRUE),
+    rt_sd = sd(trial_rt,   na.rm = TRUE),
+    .groups = "drop"
   )
-
 
 
 ##### Tukey outlier removal
 
-# calculate outliers
-gng_tukey <- gng_summary_rts %>%
+sst_tukey <- sst_summary_rts %>%
   group_by(group,
-           trial_type) %>%
+           condition,
+           trial_acc) %>%
   mutate(
     q1 = quantile(rt_mean, 0.25, na.rm = TRUE),
     q3 = quantile(rt_mean, 0.75, na.rm = TRUE),
     upper_bound = q3 + (3 * (q3 - q1)),
     lower_bound = q1 - (3 * (q3 - q1)),
-    is_outlier = (rt_mean < lower_bound) | (rt_mean > upper_bound)
+    is_outlier = rt_mean < lower_bound | rt_mean > upper_bound
   ) %>%
   ungroup()
 
-# identify outliers and add to exclusion table
-exc_tukey <- gng_tukey %>%
+
+exc_tukey <- sst_tukey %>%
   filter(is_outlier) %>%
   transmute(
     participant,
     group,
-    reason = paste0(
-      "RT removed just for the following condition due to Tukey's outlier removal (", trial_type, ")"
-    )
+    reason = paste0("mean RT outlier removed for condition: ", condition, " (Tukey 3×IQR, value: ", round(rt_mean), "ms)")
   )
 
-# put exclusions into the main exclusions table
-exclusions <- bind_rows(exclusions,
-                        exc_tukey)
+exclusions <- bind_rows(exclusions, exc_tukey)
 
-# remove outliers from df
-
-gng_summary_rts_outliers_removed <- gng_tukey %>%
+sst_summary_rts_outliers_removed <- sst_tukey %>%
   filter(!is_outlier) %>%
   select(-q1,
          -q3,
          -upper_bound,
          -lower_bound,
          -is_outlier)
+
+
+
+
+
+
+
 
 # get wide and long versions of both separately, and joined 
 gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
