@@ -381,35 +381,89 @@ sst_stats <- sst_long %>%
 # PLOTS #
 #########
 
-gng_summary_wide <- gng_summary_wide %>%
-  mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
-
-### Commission errors
-
 w = 4
-h = 5 
+h = 5
 
-p1 <- ggplot(gng_summary_wide, aes(x = group, y = commission_errors, fill = group, colour = group)) +
-  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size= .5) +
-  geom_point(aes(x = group, y = commission_errors, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
-  geom_boxplot(aes(x = group, y = commission_errors, fill = group), position = position_nudge(x = c(.22,.22), y = 0), outlier.shape=NA, alpha = .8, width = .1, colour = "black", size =.4) +
-  ylab("Commission errors (%)")+
-  xlab("")+
-  cowplot::theme_cowplot()+
-  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5)+
-  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5)+
-  scale_y_continuous(breaks = seq(0, 60, 10),
-                     limits = c(0, 60)) +
-  #                    labels = c(-20,"",0,"",20,"",40,"",60,"",80,"",100))+
-  #scale_x_discrete(labels=c("PwP", "PwP+ICBs", "HCs"))+
-  theme(axis.text.x = element_text(size=10),
-        axis.text.y = element_text(size=10),
-        axis.title.x = element_text(size=11),
-        axis.title.y = element_text(size=11),
+### SSRT
+
+p_ssrt <- ggplot(sst_wide, aes(x = group, y = ssrt, fill = group, colour = group)) +
+  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
+  geom_point(aes(x = group, y = ssrt, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  geom_boxplot(aes(x = group, y = ssrt, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
+  ylab("SSRT (ms)") +
+  xlab("") +
+  cowplot::theme_cowplot() +
+  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
+  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 11),
         legend.position = "none")
-p1
+p_ssrt
 
-#ggsave('figs/gng_commission.png', width = w, height = h)
+#ggsave('figs/sst_ssrt.png', width = w, height = h)
+
+
+### Go RT
+
+p_go_rt <- ggplot(sst_wide, aes(x = group, y = go_rt, fill = group, colour = group)) +
+  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
+  geom_point(aes(x = group, y = go_rt, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  geom_boxplot(aes(x = group, y = go_rt, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
+  ylab("Go RT (ms)") +
+  xlab("") +
+  cowplot::theme_cowplot() +
+  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
+  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 11),
+        legend.position = "none")
+p_go_rt
+
+#ggsave('figs/sst_go_rt.png', width = w, height = h)
+
+
+### Correct Go (%)
+
+p_correct_go <- ggplot(sst_wide, aes(x = group, y = correct_go, fill = group, colour = group)) +
+  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
+  geom_point(aes(x = group, y = correct_go, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  geom_boxplot(aes(x = group, y = correct_go, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
+  ylab("Correct go trials (%)") +
+  xlab("") +
+  cowplot::theme_cowplot() +
+  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
+  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 11),
+        legend.position = "none")
+p_correct_go
+
+#ggsave('figs/sst_correct_go.png', width = w, height = h)
+
+
+### Correct Stop (%)
+
+p_correct_stop <- ggplot(sst_wide, aes(x = group, y = correct_stop, fill = group, colour = group)) +
+  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
+  geom_point(aes(x = group, y = correct_stop, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  geom_boxplot(aes(x = group, y = correct_stop, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
+  ylab("Correct stop trials (%)") +
+  xlab("") +
+  cowplot::theme_cowplot() +
+  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
+  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.y = element_text(size = 11),
+        legend.position = "none")
+p_correct_stop
+
+#ggsave('figs/sst_correct_stop.png', width = w, height = h)
 
 
 ###########################
