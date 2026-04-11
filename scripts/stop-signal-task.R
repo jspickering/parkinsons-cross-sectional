@@ -123,9 +123,9 @@ sst_participant_summary_for_exclusions <- sst_data %>%
     # stop accuracy = proportion of stop trials on which participant successfully stopped
     stop_acc = sum(trial_acc == "successful stop" & condition == "stop") / sum(condition == "stop"),
     # go response rate = proportion of go trials on which participant made ANY response (correct or error)
-    go_response_rate = sum(trial_acc != "missed arrow" & condition == "go") / sum(condition == "go"),
+    go_response_rate = sum(trial_acc != "missed" & condition == "go") / sum(condition == "go"),
     # choice error rate = proportion of go trials on which participant pressed the WRONG key
-    go_choice_error_rate = sum(trial_acc == "incorrect arrow" & condition == "go") / sum(condition == "go"),
+    go_choice_error_rate = sum(trial_acc == "wrong arrow" & condition == "go") / sum(condition == "go"),
     .groups = "drop"
   )
 
