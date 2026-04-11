@@ -287,7 +287,7 @@ sst_go_rt_summary <- sst_summary_rts_outliers_removed %>%
   filter(condition == "go") %>%
   select(group, participant, rt_mean, rt_sd)
 
-# Accuracy: use original data, not affected by outlier removals since
+# Accuracy: use original data, not affected by outlier removals
 sst_accuracy <- sst_data %>%
   group_by(group, participant) %>%
   summarise(
@@ -296,6 +296,30 @@ sst_accuracy <- sst_data %>%
     .groups = "drop"
   )
 
+
+# make sure we have the data in wide and long formats for stats and plots respectively
+
+# wide: one row per participant, one column per measure
+sst_wide <- ssrt_data %>%
+  select(group, participant, ssrt) %>%
+  full_join(
+    sst_go_rt_summary %>%
+      select(group,
+             participant,
+             rt_mean) %>%
+      rename(go_rt = rt_mean),
+    by = c("group", "participant")
+  ) %>%
+  full_join(sst_accuracy, by = c("group", "participant")) %>%
+  mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
+
+# long: one row per participant per measure, for plotting and normality checks
+sst_long <- sst_wide %>%
+  pivot_longer(
+    cols = c(ssrt, go_rt, correct_go, correct_stop),
+    names_to = "measure",
+    values_to = "value"
+  )
 
 
 # get wide and long versions of both separately, and joined
