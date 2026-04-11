@@ -275,14 +275,29 @@ sst_summary_rts_outliers_removed <- sst_tukey %>%
          -lower_bound,
          -is_outlier)
 
+##### Get variables we need for analysis
+
+# SSRT: remove any additional participants identified by the exclusion process
+ssrt_data <- ssrt_data %>%
+  filter(!participant %in% exclusions$participant)
+
+# Go RT: use version after Tukey
+sst_go_rt_summary <- sst_summary_rts_outliers_removed %>%
+  filter(condition == "go") %>%
+  select(group, participant, rt_mean, rt_sd)
+
+# Accuracy — calculated from trial-level data; unaffected by RT outlier removal
+sst_accuracy <- sst_data %>%
+  group_by(group, participant) %>%
+  summarise(
+    correct_go = sum(trial_acc == "correct" & condition == "go") / sum(condition == "go") * 100,
+    correct_stop = sum(trial_acc == "successful stop"  & condition == "stop") / sum(condition == "stop") * 100,
+    .groups = "drop"
+  )
 
 
 
-
-
-
-
-# get wide and long versions of both separately, and joined 
+# get wide and long versions of both separately, and joined
 gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
   select(group, participant, trial_type, rt_mean) %>%
   pivot_wider(
