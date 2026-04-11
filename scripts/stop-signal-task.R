@@ -9,7 +9,8 @@
 ##########
 
 # load all packages and install if necessary
-requiredPackages = c('broom','janitor', 'gdata', 'cowplot', 'viridis', 'tidyverse')
+requiredPackages = c('tidyverse', 'janitor', 'trimr')
+#requiredPackages = c('broom','janitor', 'gdata', 'cowplot', 'viridis', 'tidyverse')
 for(p in requiredPackages){
   if(!require(p,character.only = TRUE)) install.packages(p)
   library(p,character.only = TRUE)
