@@ -243,80 +243,60 @@ gng_summary_rts_outliers_removed <- gng_tukey %>%
          -lower_bound,
          -is_outlier)
 
-# get wide and long versions of both separately, and joined 
-gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
+##### WIDE AND LONG FORMATS for stats and plots respectively
+
+# wide: one row per participant, one column per measure
+gng_wide <- gng_summary_rts_outliers_removed %>%
   select(group, participant, trial_type, rt_mean) %>%
   pivot_wider(
     names_from  = trial_type,
     values_from = rt_mean
   ) %>%
   rename(mean_rt_correct_go = correct_go,
-         mean_rt_failed_nogo = failed_nogo)
+         mean_rt_failed_nogo = failed_nogo) %>%
+  full_join(gng_summary_acc, by = c("participant", "group")) %>%
+  mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
 
-gng_summary_acc_wide <- gng_summary_acc
-
-gng_summary_wide <- gng_summary_acc %>%
-  full_join(gng_summary_rts_wide, by = c("participant", "group"))
-
-gng_summary_rts_long <- gng_summary_rts_outliers_removed %>%
-  select(-`rt_sd`) %>%
-  rename(measure = trial_type,
-         value = rt_mean)
-
-gng_summary_acc_long <- gng_summary_acc %>%
+# long: one row per participant per measure, for plotting and normality checks
+gng_long <- gng_wide %>%
   pivot_longer(
-    cols = c(
-      omission_errors,
-      commission_errors
-    ),
-    names_to = "measure",
+    cols      = c(commission_errors, omission_errors, mean_rt_correct_go, mean_rt_failed_nogo),
+    names_to  = "measure",
     values_to = "value"
   )
-  
-gng_summary_long <- gng_summary_acc_long %>%
-  full_join(gng_summary_rts_long, by = c("participant", "group", "measure", "value"))
 
 
-# # Tidy up the environment so that everything is easier to manage
-# gdata::keep(exclusions,
-#             gng_raw
-#             gng_summary_rts_wide,
-#             gng_summary_acc_wide,
-#             gng_summary_wide,
-#             gng_summary_rts_long,
-#             gng_summary_acc_long,
-#             gng_summary_long
-#             sure = TRUE)
+##### NORMALITY CHECKS
 
-##### Testing for normality
-
-normality_plots_rts <- ggplot(gng_summary_rts_long, aes(value)) +
+normality_plots <- ggplot(gng_long, aes(value)) +
   geom_histogram() +
   facet_grid(measure ~ group, scales = "free") +
-  labs(
-    title = "Histograms of RTs"
-  )
-normality_plots_rts
+  labs(title = "Histograms of GNG measures")
+normality_plots
 
-# Shapiro-Wilk tests
-normality_summary <- gng_summary_rts_long %>%
+normality_summary <- gng_long %>%
   group_by(group, measure) %>%
   summarise(
     p_value = shapiro.test(value)$p.value,
     .groups = "drop"
   )
 
-# if any of the measures in the normality_summary df are < 0.05 then we need to transform them
-gng_summary_rts_long <- gng_summary_rts_long %>%
+# log10 transform if any measures fail normality (p < .05)
+gng_long <- gng_long %>%
   mutate(value_log10 = log10(value))
 
-# check that the transformation make the data normal now
-normality_summary <- gng_summary_rts_long %>%
+# re-check normality after transform
+normality_summary_log10 <- gng_long %>%
   group_by(group, measure) %>%
   summarise(
     p_value = shapiro.test(value_log10)$p.value,
     .groups = "drop"
   )
+
+gng_wide <- gng_long %>%
+  select(group, participant, measure, value_log10) %>%
+  pivot_wider(names_from = measure, values_from = value_log10, names_prefix = "log10_") %>%
+  full_join(gng_wide, by = c("group", "participant"))
 
 
 ######################
@@ -324,7 +304,7 @@ normality_summary <- gng_summary_rts_long %>%
 ######################
 
 # summary statistics table (means)
-gng_stats <- gng_summary_long %>%
+gng_stats <- gng_long %>%
   group_by(group, measure) %>%
   summarise(
     mean = mean(value, na.rm = TRUE),
@@ -337,15 +317,12 @@ gng_stats <- gng_summary_long %>%
 # PLOTS #
 #########
 
-gng_summary_wide <- gng_summary_wide %>%
- mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
-
 ### Commission errors
 
 w = 4
 h = 5 
 
-p1 <- ggplot(gng_summary_wide, aes(x = group, y = commission_errors, fill = group, colour = group)) +
+p1 <- ggplot(gng_wide, aes(x = group, y = commission_errors, fill = group, colour = group)) +
   geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size= .5) +
   geom_point(aes(x = group, y = commission_errors, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
   geom_boxplot(aes(x = group, y = commission_errors, fill = group), position = position_nudge(x = c(.22,.22), y = 0), outlier.shape=NA, alpha = .8, width = .1, colour = "black", size =.4) +
@@ -374,17 +351,17 @@ p1
 ###########################
 
 # subset data for pairwise comparisons
-pwp_hc_data <- gng_summary_wide %>%
+pwp_hc_data <- gng_wide %>%
   filter(group == "PwP" |
            group == "HC")
 
-pwp_icd_data <- gng_summary_wide %>%
+pwp_icd_data <- gng_wide %>%
   filter(group == "PwP" |
            group == "PwP+ICB")
 
 # COMMISSION ERRORS
 # kruskal-wallis
-commission_errors_kw <- kruskal.test(commission_errors ~ group, data = gng_summary_wide) %>%
+commission_errors_kw <- kruskal.test(commission_errors ~ group, data = gng_wide) %>%
   broom::tidy()
 
 # mann-whitney u tests (named as wilcoxon in R, but this is independent samples version)
@@ -407,7 +384,7 @@ pwp_icd_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_icd_da
   broom::tidy() 
 
 # anova
-go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_summary_wide) %>%
+go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_wide) %>%
   broom::tidy() 
 
 # t-tests
@@ -426,7 +403,7 @@ pwp_icd_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_icd
   broom::tidy() 
 
 # anova
-nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_summary_wide) %>%
+nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_wide) %>%
   broom::tidy() 
 
 # t-tests
