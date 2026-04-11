@@ -84,10 +84,10 @@ sst_data <- sst_raw %>%
   select(participant,
          group,
          condition, # go or stop
-         trial_type, # left go, right go, left stop, right stop
-         key_pressed, # "m" (right hand), "z" (left hand)
-         trial_rt,
-         trial_acc,
+         trial_type, # 1 = leftGo, 2 = rightGo, 3 = leftStop, 4 = rightStop
+         key_pressed, # "z" (right hand), "m" (left hand), 0 (no response)
+         trial_rt, # in ms
+         trial_acc, # "correct", "wrong arrow", "missed", "failed stop", "successful stop"
          ssd # stop signal delay in ms
   ) %>%
   # convert data types for all columns to make sure they're correct
@@ -104,9 +104,6 @@ sst_data <- sst_raw %>%
   ) %>%
   # remove YC participants as this was collected for MM's project
   filter(group != "YC") %>%
-  # # recode misses as an accuracy of 0
-  # mutate(trial_acc = as.numeric(if_else(trial_acc == "miss", "0",
-  #                                       trial_acc))) %>%
   # recode group labels to match paper writing style
   mutate(group = if_else(group == "PWP", "PwP",
                          if_else(group == "ICD", "PwP+ICB",
@@ -202,10 +199,9 @@ exc_ssrt <- ssrt_data %>%
 exclusions <- bind_rows(exclusions,
                         exc_ssrt)
 
-# because of the dummy data this actually excludes every participant, so revisit this once I've got real data in
-# # and filter these exclusions out of the main data going forwards
-# sst_data <- sst_data %>%
-#   filter(!participant %in% exclusions$participant)
+# and filter these exclusions out of the main data going forwards
+sst_data <- sst_data %>%
+  filter(!participant %in% exclusions$participant)
 
 
 ##### RT trimming (Van Selst & Jolicoeur non-recursive method)
