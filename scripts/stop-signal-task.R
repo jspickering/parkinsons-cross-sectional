@@ -321,81 +321,43 @@ sst_long <- sst_wide %>%
     values_to = "value"
   )
 
-
-# get wide and long versions of both separately, and joined
-gng_summary_rts_wide <- gng_summary_rts_outliers_removed %>%
-  select(group, participant, trial_type, rt_mean) %>%
-  pivot_wider(
-    names_from  = trial_type,
-    values_from = rt_mean
-  ) %>%
-  rename(mean_rt_correct_go = correct_go,
-         mean_rt_failed_nogo = failed_nogo)
-
-gng_summary_acc_wide <- gng_summary_acc
-
-gng_summary_wide <- gng_summary_acc %>%
-  full_join(gng_summary_rts_wide, by = c("participant", "group"))
-
-gng_summary_rts_long <- gng_summary_rts_outliers_removed %>%
-  select(-`rt_sd`) %>%
-  rename(measure = trial_type,
-         value = rt_mean)
-
-gng_summary_acc_long <- gng_summary_acc %>%
-  pivot_longer(
-    cols = c(
-      omission_errors,
-      commission_errors
-    ),
-    names_to = "measure",
-    values_to = "value"
-  )
-
-gng_summary_long <- gng_summary_acc_long %>%
-  full_join(gng_summary_rts_long, by = c("participant", "group", "measure", "value"))
-
-
 # # Tidy up the environment so that everything is easier to manage
 # gdata::keep(exclusions,
-#             gng_raw
-#             gng_summary_rts_wide,
-#             gng_summary_acc_wide,
-#             gng_summary_wide,
-#             gng_summary_rts_long,
-#             gng_summary_acc_long,
-#             gng_summary_long
+#             sst_raw,
+#             sst_data,
+#             sst_wide,
+#             sst_long,
 #             sure = TRUE)
 
-##### Testing for normality
 
-normality_plots_rts <- ggplot(gng_summary_rts_long, aes(value)) +
+##### NORMALITY CHECKS
+
+normality_plots <- ggplot(sst_long, aes(value)) +
   geom_histogram() +
   facet_grid(measure ~ group, scales = "free") +
-  labs(
-    title = "Histograms of RTs"
-  )
-normality_plots_rts
+  labs(title = "Histograms of SST measures")
+normality_plots
 
-# Shapiro-Wilk tests
-normality_summary <- gng_summary_rts_long %>%
+normality_summary <- sst_long %>%
   group_by(group, measure) %>%
   summarise(
     p_value = shapiro.test(value)$p.value,
     .groups = "drop"
   )
 
-# if any of the measures in the normality_summary df are < 0.05 then we need to transform them
-gng_summary_rts_long <- gng_summary_rts_long %>%
+# log10 transform if any measures fail normality (p < .05)
+sst_long <- sst_long %>%
   mutate(value_log10 = log10(value))
 
-# check that the transformation make the data normal now
-normality_summary <- gng_summary_rts_long %>%
+# then check again. if any are still significant, use non-para tests for that measure
+normality_summary_log10 <- sst_long %>%
   group_by(group, measure) %>%
   summarise(
     p_value = shapiro.test(value_log10)$p.value,
     .groups = "drop"
   )
+
+
 
 
 ######################
