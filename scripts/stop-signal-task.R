@@ -207,30 +207,15 @@ sst_data <- sst_data %>%
 
 ##### RT trimming (Van Selst & Jolicoeur non-recursive method)
 
-sst_go_rt <- sst_data %>%
-  filter(condition == "go",
-         trial_acc != "missed") %>% # removed missed trials (no RT)
-  mutate(acc_for_trimr = 1) # trimr expects numeric data, and we're including wrong arrows in the trimming
+sst_rt_for_trimming <- sst_data %>%
+  filter(
+    (condition == "go"   & trial_acc != "missed") |    # go trials with a response
+    (condition == "stop" & trial_acc == "failed stop")  # unsuccessful stop trials
+  ) %>%
+  mutate(acc_for_trimr = if_else(trial_acc == "wrong arrow", 0, 1)) # wrong arrows treated as errors
 
-sst_go_rt_trimmed <- nonRecursive(
-  data       = sst_go_rt,
-  pptVar     = "participant",
-  condVar    = "condition",
-  rtVar      = "trial_rt",
-  accVar     = "acc_for_trimr",
-  minRT      = anticipatory_rt,
-  digits     = 0,
-  returnType = "raw"
-)
-
-# Failed stop trials - all treated as one condition for trimming
-sst_failed_stop_rt <- sst_data %>%
-  filter(condition == "stop",
-         trial_acc == "failed stop") %>%
-  mutate(acc_for_trimr = 1)
-
-sst_failed_stop_rt_trimmed <- nonRecursive(
-  data       = sst_failed_stop_rt,
+sst_rt_trimmed <- nonRecursive(
+  data       = sst_rt_for_trimming,
   pptVar     = "participant",
   condVar    = "condition",
   rtVar      = "trial_rt",
