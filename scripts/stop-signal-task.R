@@ -204,6 +204,9 @@ exclusions <- bind_rows(exclusions,
 sst_data <- sst_data %>%
   filter(!participant %in% exclusions$participant)
 
+# and the ssrt data
+ssrt_data <- ssrt_data %>%
+  filter(!participant %in% exclusions$participant)
 
 ##### RT trimming (Van Selst & Jolicoeur non-recursive method)
 
@@ -277,16 +280,14 @@ sst_summary_rts_outliers_removed <- sst_tukey %>%
 
 ##### Get variables we need for analysis
 
-# SSRT: remove any additional participants identified by the exclusion process
-ssrt_data <- ssrt_data %>%
-  filter(!participant %in% exclusions$participant)
+# SSRT we already have from earlier
 
 # Go RT: use version after Tukey
 sst_go_rt_summary <- sst_summary_rts_outliers_removed %>%
   filter(condition == "go") %>%
   select(group, participant, rt_mean, rt_sd)
 
-# Accuracy — calculated from trial-level data; unaffected by RT outlier removal
+# Accuracy: use original data, not affected by outlier removals since
 sst_accuracy <- sst_data %>%
   group_by(group, participant) %>%
   summarise(
