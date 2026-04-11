@@ -297,7 +297,7 @@ sst_accuracy <- sst_data %>%
   )
 
 
-# make sure we have the data in wide and long formats for stats and plots respectively
+#### WIDE AND LONG FORMATS for stats and plots respectively
 
 # wide: one row per participant, one column per measure
 sst_wide <- ssrt_data %>%
@@ -363,14 +363,12 @@ normality_summary_log10 <- sst_long %>%
   )
 
 
-
-
 ######################
 # SUMMARY STATISTICS #
 ######################
 
 # summary statistics table (means)
-gng_stats <- gng_summary_long %>%
+sst_stats <- sst_long %>%
   group_by(group, measure) %>%
   summarise(
     mean = mean(value, na.rm = TRUE),
