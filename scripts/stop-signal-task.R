@@ -472,66 +472,76 @@ p_correct_stop
 ###########################
 
 # subset data for pairwise comparisons
-pwp_hc_data <- gng_summary_wide %>%
-  filter(group == "PwP" |
+pwp_hc_data <- sst_wide %>%
+  filter(group == "PwP"|
            group == "HC")
 
-pwp_icd_data <- gng_summary_wide %>%
+pwp_icd_data <- sst_wide %>%
   filter(group == "PwP" |
            group == "PwP+ICB")
 
-# COMMISSION ERRORS
-# kruskal-wallis
-commission_errors_kw <- kruskal.test(commission_errors ~ group, data = gng_summary_wide) %>%
+### SSRT
+
+# variance tests
+pwp_hc_ssrt_variance <- var.test(ssrt ~ group, data = pwp_hc_data)%>%
+  broom::tidy()
+pwp_icd_ssrt_variance <- var.test(ssrt ~ group, data = pwp_icd_data) %>%
   broom::tidy()
 
-# mann-whitney u tests (named as wilcoxon in R, but this is independent samples version)
-pwp_hc_commission_mwu <- wilcox.test(commission_errors ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
+# anova
+ssrt_aov <- aov(ssrt ~ group, data = sst_wide) %>%
   broom::tidy()
-pwp_icd_commission_mwu <- wilcox.test(commission_errors ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+
+# t-tests
+pwp_hc_ssrt_ttest <- t.test(ssrt ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
   broom::tidy()
+pwp_icd_ssrt_ttest <- t.test(ssrt ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+  broom::tidy()
+
 
 ###########################
 # INFERENTIAL STATISTICS #
 #   Exploratory analysis  #
 ###########################
 
-### GO RT
+### Go RT
 
-# variance test
-pwp_hc_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_hc_data) %>%
-  broom::tidy() 
-pwp_icd_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_icd_data) %>%
-  broom::tidy() 
+pwp_hc_go_rt_variance <- var.test(go_rt ~ group, data = pwp_hc_data) %>%
+  broom::tidy()
+pwp_icd_go_rt_variance <- var.test(go_rt ~ group, data = pwp_icd_data) %>%
+  broom::tidy()
 
-# anova
-go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_summary_wide) %>%
-  broom::tidy() 
+go_rt_aov <- aov(go_rt ~ group, data = sst_wide) %>%
+  broom::tidy()
 
-# t-tests
-pwp_hc_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
-  broom::tidy() 
-pwp_icd_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
-  broom::tidy() 
+pwp_hc_go_rt_ttest<- t.test(go_rt ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+  broom::tidy()
+pwp_icd_go_rt_ttest <- t.test(go_rt ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+  broom::tidy()
 
 
-### NO-GO RT
+### Correct Go %
 
-# variance test
-pwp_hc_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data) %>%
-  broom::tidy() 
-pwp_icd_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data) %>%
-  broom::tidy() 
+# kruskal-wallis
+correct_go_kw <- kruskal.test(correct_go ~ group, data = sst_wide) %>%
+  broom::tidy()
 
-# anova
-nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_summary_wide) %>%
-  broom::tidy() 
+# mann-whitney u tests (named as wilcoxon in R, but this is independent samples version)
+pwp_hc_correct_go_mwu <- wilcox.test(correct_go ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+pwp_icd_correct_go_mwu <- wilcox.test(correct_go ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
 
-# t-tests
-pwp_hc_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
-  broom::tidy() 
-pwp_icd_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
-  broom::tidy() 
+
+### Correct Stop %
+
+correct_stop_kw <- kruskal.test(correct_stop ~ group, data = sst_wide) %>%
+  broom::tidy()
+
+pwp_hc_correct_stop_mwu <- wilcox.test(correct_stop ~ group, data = pwp_hc_data,alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+pwp_icd_correct_stop_mwu <- wilcox.test(correct_stop ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
 
 
 
