@@ -109,6 +109,8 @@ exclusions <- bind_rows(exclusions, exc_moca)
 
 moca_excluded <- exc_moca$participant_id # participant IDs for other scripts to use
 
+write_csv(exc_moca, "outputs/moca_exclusions.csv")
+
 # apply MoCA exclusions
 demographics <- demographics_raw %>%
   filter(!participant_id %in% moca_excluded) %>%
@@ -180,8 +182,7 @@ td_pigd_freqs <- demographics %>%
            td_pigd) %>%
   summarise(n = n(),
             .groups = "drop") %>%
-  pivot_wider(names_from = td_
-              igd,
+  pivot_wider(names_from = td_pigd,
               values_from = n, values_fill = 0)
 
 # frequency of ICB types
