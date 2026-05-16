@@ -77,7 +77,19 @@ source(generate_dummy_data.R)
 
 ## Demographics
 
+The demographics code must be run first, as it handles participants that need to be excluded from the MoCa and creates a file that's read into all future scripts.
+
+```{r}
+# Run the demographics code
+source(scripts/demographics.R)
+```
+
 ## Questionnaire
+
+```{r}
+# Run the questionnaire code
+# BIS, BIS/BAS, and UPPS-P
+```
 
 ## Go/No-Go
 
@@ -85,3 +97,12 @@ source(generate_dummy_data.R)
 # Run the GNG analysis code
 source(scripts/go-no-go.R)
 ```
+
+## Stop Signal Task
+
+```{r}
+# Run the SST analysis code
+source(scripts/stop-signal-task.R)
+```
+
+## Eriksen Flanker
