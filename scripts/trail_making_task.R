@@ -1,9 +1,8 @@
-############################################################################################################
-# Script for analysis of the Trail Making Test according to the pre-registration on the Open Science      #
-# Framework                                                                                                #
-# Link:                                                                                                    #
-# Authors: Jade Pickering & Marta Majewska, 2020-2026                                                      #
-############################################################################################################
+################################################################################################################
+# Script for analysis of the Trail Making Test according to the pre-registration on the Open Science Framework #
+# Link: https://osf.io/y8drq/files/frzpv                                                                       #
+################################################################################################################
+
 
 ##########
 # SET-UP #

@@ -1,7 +1,6 @@
 ############################################################################################################
 # Script for analysis of the Go/No-Go task according to the pre-registration on the Open Science Framework #
-# Link:                                                                                                    #
-# Authors: Jade Pickering & Marta Majewska, 2020-2026                                                           #
+# Link: https://osf.io/y8drq/files/frzpv                                                                   #
 ############################################################################################################
 
 ##########

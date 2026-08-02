@@ -1,7 +1,6 @@
 ###################################################################################################################
 # Script for analysis of the Eriksen Flanker task according to the pre-registration on the Open Science Framework #
-# Link:                                                                                                           #
-# Authors: Jade Pickering & Marta Majewska, 2020-2026                                                             #
+# Link: https://osf.io/y8drq/files/frzpv                                                                          #
 ###################################################################################################################
 
 ##########
@@ -21,14 +20,14 @@ source("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/t
 # task info
 expected_trials = 440
 trial_threshold = 0.8
-needed_trials   = expected_trials * trial_threshold
+needed_trials = expected_trials * trial_threshold
 anticipatory_rt = 150
 
 # empty exclusions table to fill in later
 exclusions <- tibble(
   participant = character(),
-  group       = character(),
-  reason      = character()
+  group = character(),
+  reason = character()
 )
 
 ################
@@ -126,13 +125,13 @@ flanker_rt_for_trimming <- flanker_data %>%
   filter(resp != "miss")
 
 flanker_rt_trimmed <- nonRecursive(
-  data       = flanker_rt_for_trimming,
-  pptVar     = "participant",
-  condVar    = "congruency",
-  rtVar      = "rt",
-  accVar     = "accuracy",
-  minRT      = anticipatory_rt,
-  digits     = 0,
+  data = flanker_rt_for_trimming,
+  pptVar = "participant",
+  condVar = "congruency",
+  rtVar = "rt",
+  accVar = "accuracy",
+  minRT = anticipatory_rt,
+  digits = 0,
   returnType = "raw"
 )
 
@@ -193,20 +192,20 @@ flanker_summary_rts_outliers_removed <- flanker_tukey %>%
 flanker_wide_raw <- flanker_summary_rts_outliers_removed %>%
   select(group, participant, congruency, rt_mean) %>%
   pivot_wider(
-    names_from  = congruency,
+    names_from = congruency,
     values_from = rt_mean
   ) %>%
   mutate(
     interference_effect = incongruent - congruent,
-    group        = factor(group, levels = c("PwP", "PwP+ICB", "HC"))
+    group = factor(group, levels = c("PwP", "PwP+ICB", "HC"))
   ) %>%
   filter(!is.na(interference_effect)) # remove participants missing data for one condition
 
 # long: one row per participant per measure, for normality checks and plotting
 flanker_long <- flanker_wide_raw %>%
   pivot_longer(
-    cols      = c(congruent, incongruent, interference_effect),
-    names_to  = "measure",
+    cols = c(congruent, incongruent, interference_effect),
+    names_to = "measure",
     values_to = "value"
   )
 
@@ -310,7 +309,7 @@ p_interference
 ###########################
 
 # subset data for planned pairwise comparisons
-pwp_hc_data  <- flanker_wide %>%
+pwp_hc_data <- flanker_wide %>%
   filter(group == "PwP" |
            group == "HC")
 
@@ -321,7 +320,7 @@ pwp_icd_data <- flanker_wide %>%
 ### INTERFERENCE EFFECT
 
 # variance tests
-pwp_hc_interference_variance  <- var.test(interference_effect ~ group, data = pwp_hc_data) %>%
+pwp_hc_interference_variance <- var.test(interference_effect ~ group, data = pwp_hc_data) %>%
   broom::tidy()
 pwp_icd_interference_variance <- var.test(interference_effect ~ group, data = pwp_icd_data) %>%
   broom::tidy()
@@ -332,7 +331,7 @@ interference_aov <- aov(interference_effect ~ group, data = flanker_wide) %>%
 
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
-pwp_hc_interference_ttest  <- t.test(interference_effect ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+pwp_hc_interference_ttest <- t.test(interference_effect ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
   broom::tidy()
 pwp_icd_interference_ttest <- t.test(interference_effect ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
   broom::tidy()
@@ -382,7 +381,7 @@ p_acc
 #ggsave('figs/flanker_acc.png', width = w, height = h)
 
 # subset for planned comparisons
-pwp_hc_acc  <- flanker_acc %>% 
+pwp_hc_acc <- flanker_acc %>%
   filter(group == "PwP" | group == "HC")
 pwp_icd_acc <- flanker_acc %>% 
   filter(group == "PwP" | group == "PwP+ICB")
@@ -392,7 +391,7 @@ prop_incongruent_kw <- kruskal.test(prop_correct_incongruent ~ group, data = fla
   broom::tidy()
 
 # planned Mann-Whitney U comparisons
-pwp_hc_prop_mwu  <- wilcox.test(prop_correct_incongruent ~ group, data = pwp_hc_acc,  alternative = "two.sided", conf.int = TRUE) %>%
+pwp_hc_prop_mwu <- wilcox.test(prop_correct_incongruent ~ group, data = pwp_hc_acc, alternative = "two.sided", conf.int = TRUE) %>%
   broom::tidy()
 pwp_icd_prop_mwu <- wilcox.test(prop_correct_incongruent ~ group, data = pwp_icd_acc, alternative = "two.sided", conf.int = TRUE) %>%
   broom::tidy()
