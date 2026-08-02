@@ -246,7 +246,8 @@ gng_summary_rts_outliers_removed <- gng_tukey %>%
 ##### WIDE AND LONG FORMATS for stats and plots respectively
 
 # wide: one row per participant, one column per measure
-gng_wide <- gng_summary_rts_outliers_removed %>%
+# give this a one-off name so it doesn't try to join to itself later when we do the log10 transformations
+gng_wide_raw <- gng_summary_rts_outliers_removed %>%
   select(group, participant, trial_type, rt_mean) %>%
   pivot_wider(
     names_from  = trial_type,
@@ -258,7 +259,7 @@ gng_wide <- gng_summary_rts_outliers_removed %>%
   mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
 
 # long: one row per participant per measure, for plotting and normality checks
-gng_long <- gng_wide %>%
+gng_long <- gng_wide_raw %>%
   pivot_longer(
     cols      = c(commission_errors, omission_errors, mean_rt_correct_go, mean_rt_failed_nogo),
     names_to  = "measure",
@@ -296,7 +297,7 @@ normality_summary_log10 <- gng_long %>%
 gng_wide <- gng_long %>%
   select(group, participant, measure, value_log10) %>%
   pivot_wider(names_from = measure, values_from = value_log10, names_prefix = "log10_") %>%
-  full_join(gng_wide, by = c("group", "participant"))
+  full_join(gng_wide_raw, by = c("group", "participant"))
 
 
 ######################
