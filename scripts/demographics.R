@@ -1,6 +1,6 @@
 ############################################################################################################
 # Script for analysis of demographic data according to the pre-registration on the Open Science Framework  #
-# Link:                                                                                                    #
+# Link: https://osf.io/y8drq/files/frzpv                                                                   #
 ############################################################################################################
 
 ##########
