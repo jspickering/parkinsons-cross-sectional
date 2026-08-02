@@ -300,7 +300,8 @@ sst_accuracy <- sst_data %>%
 #### WIDE AND LONG FORMATS for stats and plots respectively
 
 # wide: one row per participant, one column per measure
-sst_wide <- ssrt_data %>%
+# give this a one-off name so it doesn't try to join to itself later when we do the log10 transformations
+sst_wide_raw <- ssrt_data %>%
   select(group, participant, ssrt) %>%
   full_join(
     sst_go_rt_summary %>%
@@ -314,7 +315,7 @@ sst_wide <- ssrt_data %>%
   mutate(group = factor(group, levels = c("PwP", "PwP+ICB", "HC")))
 
 # long: one row per participant per measure, for plotting and normality checks
-sst_long <- sst_wide %>%
+sst_long <- sst_wide_raw %>%
   pivot_longer(
     cols = c(ssrt, go_rt, correct_go, correct_stop),
     names_to = "measure",
@@ -349,10 +350,11 @@ normality_summary <- sst_long %>%
 sst_long <- sst_long %>%
   mutate(value_log10 = log10(value))
 
+# redo wide with log10 values included
 sst_wide <- sst_long %>%
   select(group, participant, measure, value_log10) %>%
   pivot_wider(names_from = measure, values_from = value_log10, names_prefix = "log10_") %>%
-  full_join(sst_wide, by = c("group", "participant"))
+  full_join(sst_wide_raw, by = c("group", "participant"))
 
 # then check again. if any are still significant, use non-para tests for that measure
 normality_summary_log10 <- sst_long %>%

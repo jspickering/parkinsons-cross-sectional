@@ -189,7 +189,8 @@ flanker_summary_rts_outliers_removed <- flanker_tukey %>%
 
 # wide: one row per participant, congruent and incongruent RT in separate columns,
 # plus the interference effect (incongruent minus congruent mean correct RT)
-flanker_wide <- flanker_summary_rts_outliers_removed %>%
+# give this a one-off name so it doesn't try to join to itself later when we do the log10 transformations
+flanker_wide_raw <- flanker_summary_rts_outliers_removed %>%
   select(group, participant, congruency, rt_mean) %>%
   pivot_wider(
     names_from  = congruency,
@@ -202,7 +203,7 @@ flanker_wide <- flanker_summary_rts_outliers_removed %>%
   filter(!is.na(interference_effect)) # remove participants missing data for one condition
 
 # long: one row per participant per measure, for normality checks and plotting
-flanker_long <- flanker_wide %>%
+flanker_long <- flanker_wide_raw %>%
   pivot_longer(
     cols      = c(congruent, incongruent, interference_effect),
     names_to  = "measure",
@@ -243,12 +244,12 @@ normality_summary_log10 <- flanker_long %>%
 flanker_wide <- flanker_long %>%
   select(group,
          participant,
-         measure, 
+         measure,
          value_log10) %>%
   pivot_wider(names_from = measure,
-              values_from = value_log10, 
+              values_from = value_log10,
               names_prefix = "log10_") %>%
-  full_join(flanker_wide, 
+  full_join(flanker_wide_raw,
             by = c("group", "participant"))
 
 
