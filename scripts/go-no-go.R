@@ -281,7 +281,8 @@ normality_summary <- gng_long %>%
     .groups = "drop"
   )
 
-# log10 transform if any measures fail normality (p < .05)
+# log10 transform if any RT measures fail normality (p < .05)
+# NB this also transforms accuracy which we don't want to use but is harmless to apply the transformation wholesale for ease here
 gng_long <- gng_long %>%
   mutate(value_log10 = log10(value))
 
