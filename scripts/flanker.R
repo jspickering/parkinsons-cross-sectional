@@ -100,6 +100,15 @@ flanker_data <- flanker_raw %>%
 
 ##### Look for exclusions
 
+# get moca exclusions (written out by demographics.R, so that needs to have been run first)
+moca_exclusions <- read_csv("outputs/moca_exclusions.csv")
+moca_excluded <- str_pad(moca_exclusions$participant_id, width = 3, pad = "0") # pad to match the flanker's 3 digit style ids
+
+# remove moca exclusions
+# they're already recorded in the exclusions table in demographics.R so aren't added again here
+flanker_data <- flanker_data %>%
+  filter(!participant %in% moca_excluded)
+
 # exclude participants who completed less than 80% of expected trials
 exc_expected_trials <- flanker_data %>%
   group_by(group, participant) %>%
