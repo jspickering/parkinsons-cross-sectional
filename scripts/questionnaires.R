@@ -32,7 +32,6 @@ questionnaires_raw <- read_csv("raw_data/demographics_q_dummy_data.csv") %>%
     barratt_a,
     barratt_m,
     barratt_n,
-    bisbas_total,
     bisbas_bis,
     bisbas_drive,
     bisbas_fun,
@@ -48,7 +47,7 @@ questionnaires_raw <- read_csv("raw_data/demographics_q_dummy_data.csv") %>%
              group),
            as.character),
     across(c(barratt, barratt_a, barratt_m, barratt_n,
-             bisbas_total, bisbas_bis, bisbas_drive, bisbas_fun, bisbas_reward,
+             bisbas_bis, bisbas_drive, bisbas_fun, bisbas_reward,
              upps_sensation, upps_neg, upps_premed, upps_pers, upps_pos),
            as.numeric)
   ) %>%
@@ -56,7 +55,6 @@ questionnaires_raw <- read_csv("raw_data/demographics_q_dummy_data.csv") %>%
   mutate(group = if_else(group == "PwP", "PwP",
                    if_else(group == "ICD", "PwP+ICB",
                      if_else(group == "OC", "HC", "error")))) %>%
-  # need to check that this isn't already what bisbas_total refers to
   mutate(bas_total = bisbas_drive + bisbas_fun + bisbas_reward)
 
 
