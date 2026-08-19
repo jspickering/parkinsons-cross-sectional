@@ -124,6 +124,26 @@ normality_summary <- questionnaires_long %>%
     .groups = "drop"
   )
 
+# log10 transform if any measures fail normality (p < .05)
+questionnaires_long <- questionnaires_long %>%
+  mutate(value_log10 = log10(value))
+
+# re-check normality after transform; if still significant use non-parametric tests on the untransformed data
+normality_summary_log10 <- questionnaires_long %>%
+  filter(!is.na(value_log10)) %>%
+  group_by(group, measure) %>%
+  summarise(
+    p_value = shapiro.test(value_log10)$p.value,
+    .groups = "drop"
+  )
+
+# wide version with the log10 values alongside the originals
+# use the log10_ columns for the parametric tests on any measure that fails raw normality but passes after transform
+questionnaires_wide <- questionnaires_long %>%
+  select(group, participant_id, measure, value_log10) %>%
+  pivot_wider(names_from = measure, values_from = value_log10, names_prefix = "log10_") %>%
+  full_join(questionnaires, by = c("group", "participant_id"))
+
 
 ###########################
 # INFERENTIAL STATISTICS  # 
