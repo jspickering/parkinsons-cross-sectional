@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 *.csv
+generate_dummy_data.R
+analysis.qmd
