@@ -4,6 +4,13 @@
 # Link: https://osf.io/y8drq/files/frzpv                                                                   #
 ############################################################################################################
 
+####### IMPORTANT INFO #######
+# This script can't be run until the kirby_preprocess.R script has been run
+# Then, the data needs to be copied into the scorer file from Kaplan et al. (2016)
+# Next, the scored data needs to be copied out of the scorer and into a new csv called 'kirby_scored.csv'
+# Only then can this script be run
+
+
 ##########
 # SET-UP #
 ##########
