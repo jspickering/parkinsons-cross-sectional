@@ -8,7 +8,7 @@
 ##########
 
 # load all packages and install if necessary
-requiredPackages = c('tidyverse', 'janitor')
+requiredPackages = c('tidyverse', 'janitor', 'readxl')
 for(p in requiredPackages){
   if(!require(p,character.only = TRUE)) install.packages(p)
   library(p,character.only = TRUE)
@@ -18,8 +18,11 @@ for(p in requiredPackages){
 # READ IN DATA #
 ################
 
+data_dir <- "NETWORK_PATH_REDACTED"
+
+
 ### read in and tidy data
-demographics_raw <- read_csv("raw_data/demographics_q_dummy_data.csv") %>%
+demographics_raw <- read_excel(data_dir) %>%
   # put variables names in snake_case
   clean_names() %>%
   # remove any rows without a participant
