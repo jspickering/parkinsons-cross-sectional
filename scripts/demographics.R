@@ -82,6 +82,8 @@ demographics_raw <- read_excel(data_dir) %>%
   ) %>%
   # remove YC participants as this was collected for MM's project
   subset(group != "YC") %>%
+  # removing rows where id is not a number
+  filter(!is.na(as.numeric(participant_id))) %>%
   # recode group labels
   mutate(group = if_else(group %in% c("PWP", "PwP"), "PwP",
                    if_else(group == "ICD", "PwP+ICB",
