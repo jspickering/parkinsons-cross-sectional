@@ -210,12 +210,12 @@ remitted_icb <- demographics %>%
   mutate(quip_diff = quip_anytime_pos - quip_current_pos) %>%
   select(participant_id,
          group,
-         quip_diff) #%>%
-  # group_by(group) %>%
-  # summarise(
-  #   n_remitted = sum(quip_diff > 0, na.rm = TRUE),
-  #   .groups = "drop"
-  # )
+         quip_diff) %>%
+   group_by(group) %>%
+   summarise(
+     n_remitted = sum(quip_diff > 0, na.rm = TRUE),
+     .groups = "drop"
+   )
 
 ####################
 # NORMALITY CHECKS #
