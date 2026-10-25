@@ -18,6 +18,7 @@ for(p in requiredPackages){
 source("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 
 # task info
+
 expected_trials = 30 # participants must complete 100% of trials to be included
 
 # empty exclusions table to fill in later
@@ -32,9 +33,9 @@ exclusions <- tibble(
 ################
 
 data_dir <- "./raw_data/balloon_analogue_risk_task_dummy" # dummy data for development
-# data_dir <- "Z:/Study 2_cross sectional/DATA/BART" # file path to network drive
+data_dir <- "NETWORK_PATH_REDACTED" # file path to network drive
 
-groups <- c("PWP", "ICD", "OC", "YC") # specify groups (these may need renaming to match the network drive folder names when switching to the real data)
+groups <- c("PwP", "ICD", "OC", "YC") # specify groups (these may need renaming to match the network drive folder names when switching to the real data)
 group_dfs <- list() # create empty list to hold data for each group
 
 # for every group
@@ -208,26 +209,28 @@ bart_normality_summary <- bart_long_outliers_removed %>%
     .groups = "drop"
   )
 
+# Shapiro results show normal distribution # 
+
 # log10 transform if any conditions fail normality checks above (p < .05)
 # may not need this if everything is fine with the real data
 # NB: balloon_diff can have negative values so can't be log10 transformed - if it fails the normality checks use the non-parametric tests on the untransformed data instead
-bart_wide <- bart_wide %>%
-  mutate(log10_adjusted_pumps = log10(adjusted_pumps),
-         log10_final_points = log10(final_points))
+# bart_wide <- bart_wide %>%
+ #  mutate(log10_adjusted_pumps = log10(adjusted_pumps),
+      #   log10_final_points = log10(final_points))
 
 # re-check normality after transforming and if still non-normal use non-parametric tests on untransformed data
-bart_normality_summary_log10 <- bart_wide %>%
-  pivot_longer(
-    cols = c(log10_adjusted_pumps, log10_final_points),
-    names_to = "measure",
-    values_to = "value"
-  ) %>%
-  group_by(group,
-           measure) %>%
-  summarise(
-    p_value = shapiro.test(value)$p.value,
-    .groups = "drop"
-  )
+# bart_normality_summary_log10 <- bart_wide %>%
+  # pivot_longer(
+    #cols = c(log10_adjusted_pumps, log10_final_points),
+    #names_to = "measure",
+    #values_to = "value"
+  #) %>%
+  #group_by(group,
+   #        measure) %>%
+  #summarise(
+   # p_value = shapiro.test(value)$p.value,
+    #.groups = "drop"
+#  )
 
 
 ######################
@@ -333,9 +336,13 @@ pwp_hc_pumps_variance <- var.test(adjusted_pumps ~ group, data = pwp_hc_data) %>
 pwp_icd_pumps_variance <- var.test(adjusted_pumps ~ group, data = pwp_icd_data) %>%
   broom::tidy()
 
+# both variance tests non significant 
+
 # one-way between-subjects ANOVA
 bart_pumps_aov <- aov(adjusted_pumps ~ group, data = bart_wide) %>%
   broom::tidy()
+
+# anova non-significant
 
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
@@ -343,6 +350,9 @@ pwp_hc_pumps_ttest <- t.test(adjusted_pumps ~ group, data = pwp_hc_data, var.equ
   broom::tidy()
 pwp_icd_pumps_ttest <- t.test(adjusted_pumps ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
   broom::tidy()
+
+# pwp / hc t-test significant p = 0.04
+# pwp / icd t-test non-significant
 
 # non-parametric equivalents, only needed if the normality checks above fail
 # bart_pumps_kw <- kruskal.test(adjusted_pumps ~ group, data = bart_wide) %>%
@@ -367,9 +377,13 @@ pwp_hc_diff_variance <- var.test(balloon_diff ~ group, data = pwp_hc_data) %>%
 pwp_icd_diff_variance <- var.test(balloon_diff ~ group, data = pwp_icd_data) %>%
   broom::tidy()
 
+# variance tests non significant
+
 # one-way between-subjects ANOVA
 bart_diff_aov <- aov(balloon_diff ~ group, data = bart_wide) %>%
   broom::tidy()
+
+# anova non significant
 
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
@@ -377,6 +391,8 @@ pwp_hc_diff_ttest <- t.test(balloon_diff ~ group, data = pwp_hc_data, var.equal 
   broom::tidy()
 pwp_icd_diff_ttest <- t.test(balloon_diff ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
   broom::tidy()
+
+# both t-tests non significant
 
 # non-parametric equivalents, only needed if the normality checks above fail
 # NB: balloon_diff can't be log10 transformed (negative values) so go straight to these if non-normal - there isn't any transformed data
@@ -397,9 +413,13 @@ pwp_hc_points_variance <- var.test(final_points ~ group, data = pwp_hc_data) %>%
 pwp_icd_points_variance <- var.test(final_points ~ group, data = pwp_icd_data) %>%
   broom::tidy()
 
+# variance tests non significant
+
 # one-way between-subjects ANOVA
 bart_points_aov <- aov(final_points ~ group, data = bart_wide) %>%
   broom::tidy()
+
+# anova non significant
 
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
@@ -407,6 +427,9 @@ pwp_hc_points_ttest <- t.test(final_points ~ group, data = pwp_hc_data, var.equa
   broom::tidy()
 pwp_icd_points_ttest <- t.test(final_points ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
   broom::tidy()
+
+# pwp / icd t-test non significant
+# pwp / hc t-test significant at p=0.04
 
 # non-parametric equivalents, only needed if the normality checks above fail
 # bart_points_kw <- kruskal.test(final_points ~ group, data = bart_wide) %>%
