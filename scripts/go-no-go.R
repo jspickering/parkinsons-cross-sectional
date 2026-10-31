@@ -388,37 +388,57 @@ pwp_icd_commission_mwu <- wilcox.test(commission_errors ~ group, data = pwp_icd_
 ### GO RT
 
 # variance test
-pwp_hc_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_hc_data) %>%
+pwp_hc_go_rt_variance <- var.test(log10_mean_rt_correct_go ~ group, data = pwp_hc_data) %>%
   broom::tidy() 
-pwp_icd_go_rt_variance <- var.test(mean_rt_correct_go ~ group, data = pwp_icd_data) %>%
+pwp_icd_go_rt_variance <- var.test(log10_mean_rt_correct_go ~ group, data = pwp_icd_data) %>%
   broom::tidy() 
 
 # anova
-go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_wide) %>%
-  broom::tidy() 
+# go_rt_aov <- aov(mean_rt_correct_go ~ group, data = gng_wide) %>%
+#  broom::tidy() 
+
 
 # t-tests
-pwp_hc_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
-  broom::tidy() 
-pwp_icd_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
-  broom::tidy() 
+#pwp_hc_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+ # broom::tidy() 
+#pwp_icd_go_rt_ttest <- t.test(mean_rt_correct_go ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+ # broom::tidy() 
+
+# Non parametric tests as rt non normal
+
+go_rt_kw <- kruskal.test(log10_mean_rt_correct_go ~ group, data = gng_wide) %>%
+  broom::tidy()
+
+pwp_hc_go_rt_mwu <- wilcox.test(log10_mean_rt_correct_go ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+pwp_icd_go_rt_mwu <- wilcox.test(log10_mean_rt_correct_go ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
 
 
 ### NO-GO RT
 
 # variance test
-pwp_hc_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data) %>%
+pwp_hc_nogo_rt_variance <- var.test(log10_mean_rt_failed_nogo ~ group, data = pwp_hc_data) %>%
   broom::tidy() 
-pwp_icd_nogo_rt_variance <- var.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data) %>%
+pwp_icd_nogo_rt_variance <- var.test(log10_mean_rt_failed_nogo ~ group, data = pwp_icd_data) %>%
   broom::tidy() 
 
 # anova
-nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_wide) %>%
-  broom::tidy() 
+# nogo_rt_aov <- aov(mean_rt_failed_nogo ~ group, data = gng_wide) %>%
+ # broom::tidy() 
 
 # t-tests
-pwp_hc_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
-  broom::tidy() 
-pwp_icd_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
-  broom::tidy() 
+# pwp_hc_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
+#  broom::tidy() 
+# pwp_icd_nogo_rt_ttest <- t.test(mean_rt_failed_nogo ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
+#  broom::tidy() 
 
+
+# Non parametric tests as non-normal
+nogo_rt_kw <- kruskal.test(log10_mean_rt_failed_nogo ~ group, data = gng_wide) %>%
+  broom::tidy()
+
+pwp_hc_nogo_rt_mwu <- wilcox.test(log10_mean_rt_failed_nogo ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
+pwp_icd_nogo_rt_mwu <- wilcox.test(log10_mean_rt_failed_nogo ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy()
