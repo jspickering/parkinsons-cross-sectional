@@ -47,7 +47,7 @@ delib_manual_exclusions <- tibble(
 data_dir <- "./raw_data/cambridge_gambling_task_dummy" # dummy data for development
 data_dir <-  "NETWORK_PATH_REDACTED" # file path to network drive
 
-groups <- c("PWP", "ICD", "HC", "YC") # specify groups
+groups <- c("PWP", "ICD", "OC", "YC") # specify groups
 group_dfs <- list() # create empty list to hold data for each group
 
 cgt_cols <- c("participant", "condition", "block_num", "trial_num", "trial_type", "colour_rt", "colour_choice",
@@ -244,7 +244,7 @@ delib_normality_summary <- cgt_deliberation %>%
   )
 
 # log10 transform if any conditions fail normality checks above (p < .05)
-# may not need this if everything is fine with the real data
+# both measures had conditions < p .05
 cgt_deliberation <- cgt_deliberation %>%
   mutate(mean_delib_log10 = log10(mean_delib))
 
@@ -273,14 +273,14 @@ cgt_risk_adj_stats <- cgt_risk_adj %>%
   )
 
 # deliberation times per group per ratio
-cgt_delib_stats <- cgt_deliberation %>%
-  group_by(group,
-           ratio) %>%
-  summarise(
-    mean = mean(mean_delib, na.rm = TRUE),
-    sd = sd(mean_delib, na.rm = TRUE),
-    .groups = "drop"
-  )
+#cgt_delib_stats <- cgt_deliberation %>%
+ # group_by(group,
+  #         ratio) %>%
+  #summarise(
+   # mean = mean(mean_delib, na.rm = TRUE),
+    #sd = sd(mean_delib, na.rm = TRUE),
+  #  .groups = "drop"
+  #)
 
 # quality of decision making per group
 cgt_quality_stats <- cgt_quality %>%
@@ -322,23 +322,23 @@ p_cgt_rai
 ### Deliberation times
 
 # raincloud per group, faceted by box ratio
-p_cgt_delib <- ggplot(
-  cgt_deliberation,
-  aes(x = group, y = mean_delib, fill = group, colour = group)) +
-  geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
-  geom_point(aes(x = group, y = mean_delib, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
-  geom_boxplot(aes(x = group, y = mean_delib, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
-  facet_wrap(~ ratio, nrow = 1) +
-  ylab("Mean deliberation time (ms)") +
-  xlab("") +
-  cowplot::theme_cowplot() +
-  viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
-  viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
-  theme(axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
-        axis.text.y = element_text(size = 10),
-        axis.title.y = element_text(size = 11),
-        legend.position = "none")
-p_cgt_delib
+#p_cgt_delib <- ggplot(
+ # cgt_deliberation,
+  #aes(x = group, y = mean_delib, fill = group, colour = group)) +
+  #geom_flat_violin(aes(fill = group), position = position_nudge(x = .3, y = 0), adjust = 1.2, trim = TRUE, alpha = .8, colour = "black", size = .5) +
+  #geom_point(aes(x = group, y = mean_delib, fill = group, colour = group), position = position_jitter(width = .1), alpha = .7, size = 1) +
+  #geom_boxplot(aes(x = group, y = mean_delib, fill = group), position = position_nudge(x = c(.22, .22), y = 0), outlier.shape = NA, alpha = .8, width = .1, colour = "black", size = .4) +
+  #facet_wrap(~ ratio, nrow = 1) +
+  #ylab("Mean deliberation time (ms)") +
+  #xlab("") +
+  #cowplot::theme_cowplot() +
+  #viridis::scale_colour_viridis(discrete = TRUE, begin = .1, end = .5) +
+  #viridis::scale_fill_viridis(discrete = TRUE, begin = .1, end = .5) +
+  #theme(axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+   #     axis.text.y = element_text(size = 10),
+    #    axis.title.y = element_text(size = 11),
+     #   legend.position = "none")
+#p_cgt_delib
 
 #ggsave('figs/cgt_delib.png', width = w * 2.5, height = h)
 
@@ -380,17 +380,20 @@ pwp_icd_rai <- cgt_risk_adj %>%
 ### RISK ADJUSTMENT INDEX
 
 # variance tests
+# Non significant
 pwp_hc_rai_variance <- var.test(risk_adj_index ~ group, data = pwp_hc_rai) %>%
   broom::tidy()
 pwp_icd_rai_variance <- var.test(risk_adj_index ~ group, data = pwp_icd_rai) %>%
   broom::tidy()
 
 # one-way between-subjects ANOVA
+# non significant
 cgt_rai_aov <- aov(risk_adj_index ~ group, data = cgt_risk_adj) %>%
   broom::tidy()
 
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
+# PwP vs ICD, P = 0.03
 pwp_hc_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_hc_rai, var.equal = TRUE) %>%
   broom::tidy()
 pwp_icd_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_icd_rai, var.equal = TRUE) %>%
@@ -417,8 +420,8 @@ pwp_icd_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_icd_rai, var.equa
 # if normality checks fail but log10 transofmation fixess them, swap mean_delib for mean_delib_log10 here and in posthocs below
 # NB: if they're still non-normal after transforming there's no standard non-para equivalent of a 2-way mixed ANOVA afaik
 # we'd need to choose rank-based alternative but cross that bridge if/when we come to it
-cgt_delib_anova <- aov(mean_delib ~ group * ratio + Error(participant/ratio), data = cgt_deliberation) %>%
-  broom::tidy()
+#cgt_delib_anova <- aov(mean_delib ~ group * ratio + Error(participant/ratio), data = cgt_deliberation) %>%
+ # broom::tidy()
 
 # # post-hoc pairwise comparisons across ratios, only to be interpreted if the ANOVA shows a
 # # significant effect of ratio. needs rows ordered consistently within each ratio for the pairing
