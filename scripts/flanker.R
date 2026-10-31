@@ -130,6 +130,8 @@ flanker_data <- flanker_data %>%
 ##### Pre-processing: individual level
 
 # misses have no valid RT so are excluded before passing to trimr
+
+
 flanker_rt_for_trimming <- flanker_data %>%
   filter(resp != "miss")
 
