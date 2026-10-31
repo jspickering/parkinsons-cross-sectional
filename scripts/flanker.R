@@ -35,34 +35,34 @@ exclusions <- tibble(
 ################
 
 ##### Access data from network drive
-# data_dir <- "Z:/Study 2_cross sectional/DATA/Flanker" # file path to network drive
-# groups <- c("PWP", "ICD", "OC", "YC") # specify groups
-# group_dfs <- list() # create empty list to hold data for each group
-#
-# for (g in groups) {
-#   # find all csv files in that group's folder
-#   files <- list.files(
-#     path = file.path(data_dir, g),
-#     pattern = "\\.csv$",
-#     full.names = TRUE
-#   )
-#   # read all the files in and combine into one df
-#   group_data <- map_df(files, ~ read_csv(.x, col_types = cols(.default = "c")))
-#   # clean column names and add a 'group' column
-#   group_data <- group_data %>%
-#     clean_names() %>%
-#     mutate(group = g)
-#   # store the group's df into a list
-#   group_dfs[[g]] <- group_data
-# }
-#
-# # combine all group dfs into one big df
-# flanker_raw <- bind_rows(group_dfs)
+data_dir <- "NETWORK_PATH_REDACTED" # file path to network drive
+ groups <- c("PwP", "ICD", "OC", "YC") # specify groups
+ group_dfs <- list() # create empty list to hold data for each group
+
+ for (g in groups) {
+ #  find all csv files in that group's folder
+   files <- list.files(
+     path = file.path(data_dir, g),
+     pattern = "\\.csv$",
+     full.names = TRUE
+   )
+   # read all the files in and combine into one df
+   group_data <- map_df(files, ~ read_csv(.x, col_types = cols(.default = "c")))
+  # clean column names and add a 'group' column
+   group_data <- group_data %>%
+     clean_names() %>%
+     mutate(group = g)
+   # store the group's df into a list
+   group_dfs[[g]] <- group_data
+ }
+
+ # combine all group dfs into one big df
+ flanker_raw <- bind_rows(group_dfs)
 
 
 # for now have to use dummy data
-flanker_raw <- read_csv("./raw_data/flanker_dummy_data.csv") %>%
-  clean_names()
+# flanker_raw <- read_csv("./raw_data/flanker_dummy_data.csv") %>%
+#  clean_names()
 
 ##### Tidy data
 flanker_data <- flanker_raw %>%
