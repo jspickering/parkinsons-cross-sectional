@@ -45,7 +45,7 @@ delib_manual_exclusions <- tibble(
 ################
 
 data_dir <- "./raw_data/cambridge_gambling_task_dummy" # dummy data for development
-# data_dir <- "Z:/Study 2_cross sectional/DATA/CGT" # file path to network drive
+data_dir <-  "NETWORK_PATH_REDACTED" # file path to network drive
 
 groups <- c("PWP", "ICD", "HC", "YC") # specify groups
 group_dfs <- list() # create empty list to hold data for each group
