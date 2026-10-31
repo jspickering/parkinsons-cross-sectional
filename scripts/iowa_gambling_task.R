@@ -34,8 +34,8 @@ exclusions <- tibble(
 # the raw files are one per participant, in one folder per group, in an awkward format
 # a "deck order" key at the top mapping 'screen position' (L-R) to 'actual deck', then a trial table below
 # the dummy data has the same awkward format
-data_dir <- "./raw_data/iowa_gambling_task_dummy" # dummy data for development
-# data_dir <- "Z:/Study 2_cross sectional/DATA/IGT" # file path to network drive
+# data_dir <- "./raw_data/iowa_gambling_task_dummy" # dummy data for development
+ data_dir <- "NETWORK_PATH_REDACTED"  # file path to network drive
 
 groups <- c("PWP", "ICD", "OC", "YC") # specify groups
 group_dfs <- list() # create empty list to hold data for each group
@@ -392,15 +392,15 @@ pwp_icd_score_variance <- var.test(score ~ group, data = pwp_icd_data) %>%
   broom::tidy()
 
 # one-way between-subjects ANOVA
-igt_score_aov <- aov(score ~ group, data = igt_wide) %>%
-  broom::tidy()
+ igt_score_aov <- aov(score ~ group, data = igt_wide) %>%
+   broom::tidy()
 
 # planned independent t-tests
-# change 'var.equal' depending on the variances tests above
-pwp_hc_score_ttest <- t.test(score ~ group, data = pwp_hc_data, var.equal = TRUE) %>%
-  broom::tidy()
-pwp_icd_score_ttest <- t.test(score ~ group, data = pwp_icd_data, var.equal = TRUE) %>%
-  broom::tidy()
+# change 'var.equal' depending on the variances tests above (changed to FALSE)
+ pwp_hc_score_ttest <- t.test(score ~ group, data = pwp_hc_data, var.equal = FALSE) %>%
+ broom::tidy()
+ pwp_icd_score_ttest <- t.test(score ~ group, data = pwp_icd_data, var.equal = FALSE) %>%
+ broom::tidy()
 
 # non-parametric equivalents, only needed if the normality checks above fail
 # igt_score_kw <- kruskal.test(score ~ group, data = igt_wide) %>%
@@ -409,7 +409,7 @@ pwp_icd_score_ttest <- t.test(score ~ group, data = pwp_icd_data, var.equal = TR
 # pwp_hc_score_mwu <- wilcox.test(score ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>%
 #   broom::tidy()
 # pwp_icd_score_mwu <- wilcox.test(score ~ group, data = pwp_icd_data, alternative = "two.sided", conf.int = TRUE) %>%
-#   broom::tidy()
+ #  broom::tidy()
 
 
 ###########################
@@ -425,30 +425,30 @@ igt_bins_anova <- aov(score ~ group * bin + Error(participant/bin), data = igt_b
 
 # # post-hoc pairwise comparisons across bins, only to be interpreted if the ANOVA shows a
 # # significant effect of bin; needs rows ordered consistently within each bin for the pairing
-# igt_bins_posthoc <- igt_bins %>%
-#   arrange(bin, group, participant) %>%
-#   with(., pairwise.t.test(score, bin, paired = TRUE, p.adjust.method = "bonferroni")) %>%
-#   broom::tidy()
+ igt_bins_posthoc <- igt_bins %>%
+   arrange(bin, group, participant) %>%
+   with(., pairwise.t.test(score, bin, paired = TRUE, p.adjust.method = "bonferroni")) %>%
+   broom::tidy()
 
 # # subset data for planned pairwise comparisons, same group pairs as the confirmatory analysis
-# pwp_hc_bins <- igt_bins %>%
-#   filter(group == "PwP" |
-#            group == "HC")
-# 
-# pwp_icd_bins <- igt_bins %>%
-#   filter(group == "PwP" |
-#            group == "PwP+ICB")
-#
+ pwp_hc_bins <- igt_bins %>%
+   filter(group == "PwP" |
+            group == "HC")
+ 
+ pwp_icd_bins <- igt_bins %>%
+   filter(group == "PwP" |
+            group == "PwP+ICB")
+
 # # variance tests per bin
-# pwp_hc_bins_variance <- pwp_hc_bins %>%
-#   group_by(bin) %>%
-#   group_modify(~ var.test(score ~ group, data = .x) %>%
-#                  broom::tidy())
-# pwp_icd_bins_variance <- pwp_icd_bins %>%
-#   group_by(bin) %>%
-#   group_modify(~ var.test(score ~ group, data = .x) %>%
-#                  broom::tidy())
-# 
+ pwp_hc_bins_variance <- pwp_hc_bins %>%
+   group_by(bin) %>%
+   group_modify(~ var.test(score ~ group, data = .x) %>%
+   broom::tidy())
+ pwp_icd_bins_variance <- pwp_icd_bins %>%
+   group_by(bin) %>%
+   group_modify(~ var.test(score ~ group, data = .x) %>%
+    broom::tidy())
+
 # # planned independent t-tests, run within each bin, only to be interpreted if the ANOVA shows
 # # a significant effect of group or a group x bin interaction
 # # the groups aren't compared collapsed across bins as that's just the confirmatory total score test
@@ -467,28 +467,28 @@ igt_bins_anova <- aov(score ~ group * bin + Error(participant/bin), data = igt_b
 # tested separately: Friedman for bin (within-subjects) and Kruskal-Wallis per bin for group
 # NB: neither tests the group x bin interaction (we can figure this out if we need it)
 
-# igt_bins_friedman <- igt_bins %>%
-#   arrange(bin, participant) %>%
-#   with(., friedman.test(score, bin, participant)) %>%
-#   broom::tidy()
+ igt_bins_friedman <- igt_bins %>%
+   arrange(bin, participant) %>%
+   with(., friedman.test(score, bin, participant)) %>%
+   broom::tidy()
 
-# igt_bins_kw <- igt_bins %>%
-#   group_by(bin) %>%
-#   group_modify(~ kruskal.test(score ~ group, data = .x) %>%
-#                  broom::tidy())
+ igt_bins_kw <- igt_bins %>%
+   group_by(bin) %>%
+   group_modify(~ kruskal.test(score ~ group, data = .x) %>%
+                  broom::tidy())
 
 # post-hoc pairwise comparisons across bins
-# igt_bins_posthoc_np <- igt_bins %>%
-#   arrange(bin, group, participant) %>%
-#   with(., pairwise.wilcox.test(score, bin, paired = TRUE, p.adjust.method = "bonferroni")) %>%
-#   broom::tidy()
+ igt_bins_posthoc_np <- igt_bins %>%
+   arrange(bin, group, participant) %>%
+   with(., pairwise.wilcox.test(score, bin, paired = TRUE, p.adjust.method = "bonferroni")) %>%
+   broom::tidy()
 
 # planned Mann-Whitney U comparisons, run within each bin
-# pwp_hc_bins_mwu <- pwp_hc_bins %>%
-#   group_by(bin) %>%
-#   group_modify(~ wilcox.test(score ~ group, data = .x, alternative = "two.sided", conf.int = TRUE) %>%
-#                  broom::tidy())
-# pwp_icd_bins_mwu <- pwp_icd_bins %>%
-#   group_by(bin) %>%
-#   group_modify(~ wilcox.test(score ~ group, data = .x, alternative = "two.sided", conf.int = TRUE) %>%
-#                  broom::tidy())
+ pwp_hc_bins_mwu <- pwp_hc_bins %>%
+   group_by(bin) %>%
+   group_modify(~ wilcox.test(score ~ group, data = .x, alternative = "two.sided", conf.int = TRUE) %>%
+  broom::tidy())
+ pwp_icd_bins_mwu <- pwp_icd_bins %>%
+   group_by(bin) %>%
+   group_modify(~ wilcox.test(score ~ group, data = .x, alternative = "two.sided", conf.int = TRUE) %>%
+                  broom::tidy())
