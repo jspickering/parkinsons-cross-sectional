@@ -394,9 +394,9 @@ cgt_rai_aov <- aov(risk_adj_index ~ group, data = cgt_risk_adj) %>%
 # planned independent t-tests
 # change 'var.equal' depending on the variances tests above
 # PwP vs ICD, P = 0.03
-pwp_hc_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_hc_rai, var.equal = TRUE) %>%
+pwp_hc_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_hc_rai, var.equal = FALSE) %>%
   broom::tidy()
-pwp_icd_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_icd_rai, var.equal = TRUE) %>%
+pwp_icd_rai_ttest <- t.test(risk_adj_index ~ group, data = pwp_icd_rai, var.equal = FALSE) %>%
   broom::tidy()
 
 # non-parametric equivalents, only needed if the normality checks above fail

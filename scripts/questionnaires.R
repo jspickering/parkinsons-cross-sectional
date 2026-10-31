@@ -9,7 +9,7 @@
 ##########
 
 # load all packages and install if necessary
-requiredPackages = c('tidyverse', 'janitor')
+requiredPackages = c('tidyverse', 'janitor', 'readxl')
 for(p in requiredPackages){
   if(!require(p,character.only = TRUE)) install.packages(p)
   library(p,character.only = TRUE)
@@ -22,7 +22,7 @@ source("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/t
 # READ IN DATA #
 ################
 
-questionnaires_raw <- read_csv("raw_data/demographics_q_dummy_data.csv") %>%
+questionnaires_raw <- read_excel("NETWORK_PATH_REDACTED") %>%
   clean_names() %>%
   drop_na(group) %>%
   select(
@@ -150,11 +150,11 @@ questionnaires_wide <- questionnaires_long %>%
 ###########################
 
 # pairwise subsets for planned comparisons
-pwp_hc_data  <- questionnaires %>%
+pwp_hc_data  <- questionnaires_wide %>%
   filter(group == "PwP"|
            group == "HC")
 
-pwp_icb_data <- questionnaires %>%
+pwp_icb_data <- questionnaires_wide %>%
   filter(group == "PwP"|
            group == "PwP+ICB")
 
@@ -164,23 +164,23 @@ pwp_icb_data <- questionnaires %>%
 
 # total score
 
-barratt_kw           <- kruskal.test(barratt ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_barratt_mwu   <- wilcox.test(barratt ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_barratt_mwu  <- wilcox.test(barratt ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# barratt_kw           <- kruskal.test(barratt ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_barratt_mwu   <- wilcox.test(barratt ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_barratt_mwu  <- wilcox.test(barratt ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-barratt_aov          <- aov(barratt ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_barratt_var   <- var.test(barratt ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_barratt_var  <- var.test(barratt ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_barratt_tt    <- t.test(barratt ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_barratt_tt   <- t.test(barratt ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+barratt_aov          <- aov(log10_barratt ~ group, data = questionnaires_wide) %>% broom::tidy()
+pwp_hc_barratt_var   <- var.test(log10_barratt ~ group, data = pwp_hc_data) %>% broom::tidy()
+pwp_icb_barratt_var  <- var.test(log10_barratt ~ group, data = pwp_icb_data) %>% broom::tidy()
+pwp_hc_barratt_tt    <- t.test(log10_barratt ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
+pwp_icb_barratt_tt   <- t.test(log10_barratt ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
 
 # attentional
 
-barratt_a_kw         <- kruskal.test(barratt_a ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_ba_mwu        <- wilcox.test(barratt_a ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_ba_mwu       <- wilcox.test(barratt_a ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# barratt_a_kw         <- kruskal.test(barratt_a ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_ba_mwu        <- wilcox.test(barratt_a ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_ba_mwu       <- wilcox.test(barratt_a ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-barratt_a_aov        <- aov(barratt_a ~ group, data = questionnaires) %>% broom::tidy()
+barratt_a_aov        <- aov(barratt_a ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_ba_var        <- var.test(barratt_a ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_ba_var       <- var.test(barratt_a ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_ba_tt         <- t.test(barratt_a ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -188,23 +188,23 @@ pwp_icb_ba_tt        <- t.test(barratt_a ~ group, data = pwp_icb_data, var.equal
 
 # motor
 
-barratt_m_kw         <- kruskal.test(barratt_m ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_bm_mwu        <- wilcox.test(barratt_m ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_bm_mwu       <- wilcox.test(barratt_m ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# barratt_m_kw         <- kruskal.test(barratt_m ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_bm_mwu        <- wilcox.test(barratt_m ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_bm_mwu       <- wilcox.test(barratt_m ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-barratt_m_aov        <- aov(barratt_m ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_bm_var        <- var.test(barratt_m ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_bm_var       <- var.test(barratt_m ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_bm_tt         <- t.test(barratt_m ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_bm_tt        <- t.test(barratt_m ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+barratt_m_aov        <- aov(log10_barratt_m ~ group, data = questionnaires_wide) %>% broom::tidy()
+pwp_hc_bm_var        <- var.test(log10_barratt_m ~ group, data = pwp_hc_data) %>% broom::tidy()
+pwp_icb_bm_var       <- var.test(log10_barratt_m ~ group, data = pwp_icb_data) %>% broom::tidy()
+pwp_hc_bm_tt         <- t.test(log10_barratt_m ~ group, data = pwp_hc_data, var.equal = FALSE) %>% broom::tidy()
+pwp_icb_bm_tt        <- t.test(log10_barratt_m ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
 
 # non-planning
 
-barratt_n_kw         <- kruskal.test(barratt_n ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_bn_mwu        <- wilcox.test(barratt_n ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_bn_mwu       <- wilcox.test(barratt_n ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# barratt_n_kw         <- kruskal.test(barratt_n ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_bn_mwu        <- wilcox.test(barratt_n ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_bn_mwu       <- wilcox.test(barratt_n ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-barratt_n_aov        <- aov(barratt_n ~ group, data = questionnaires) %>% broom::tidy()
+barratt_n_aov        <- aov(barratt_n ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_bn_var        <- var.test(barratt_n ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_bn_var       <- var.test(barratt_n ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_bn_tt         <- t.test(barratt_n ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -217,11 +217,11 @@ pwp_icb_bn_tt        <- t.test(barratt_n ~ group, data = pwp_icb_data, var.equal
 
 # overall BIS score
 
-bis_kw               <- kruskal.test(bisbas_bis ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_bis_mwu       <- wilcox.test(bisbas_bis ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_bis_mwu      <- wilcox.test(bisbas_bis ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# bis_kw               <- kruskal.test(bisbas_bis ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_bis_mwu       <- wilcox.test(bisbas_bis ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_bis_mwu      <- wilcox.test(bisbas_bis ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-bis_aov              <- aov(bisbas_bis ~ group, data = questionnaires) %>% broom::tidy()
+bis_aov              <- aov(bisbas_bis ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_bis_var       <- var.test(bisbas_bis ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_bis_var      <- var.test(bisbas_bis ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_bis_tt        <- t.test(bisbas_bis ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -229,11 +229,11 @@ pwp_icb_bis_tt       <- t.test(bisbas_bis ~ group, data = pwp_icb_data, var.equa
 
 # overall BAS score
 
-bas_kw               <- kruskal.test(bas_total ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_bas_mwu       <- wilcox.test(bas_total ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_bas_mwu      <- wilcox.test(bas_total ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# bas_kw               <- kruskal.test(bas_total ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_bas_mwu       <- wilcox.test(bas_total ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_bas_mwu      <- wilcox.test(bas_total ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-bas_aov              <- aov(bas_total ~ group, data = questionnaires) %>% broom::tidy()
+bas_aov              <- aov(bas_total ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_bas_var       <- var.test(bas_total ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_bas_var      <- var.test(bas_total ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_bas_tt        <- t.test(bas_total ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -242,11 +242,11 @@ pwp_icb_bas_tt       <- t.test(bas_total ~ group, data = pwp_icb_data, var.equal
 
 # drive
 
-bas_drive_kw         <- kruskal.test(bisbas_drive ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_drive_mwu     <- wilcox.test(bisbas_drive ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_drive_mwu    <- wilcox.test(bisbas_drive ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# bas_drive_kw         <- kruskal.test(bisbas_drive ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_drive_mwu     <- wilcox.test(bisbas_drive ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_drive_mwu    <- wilcox.test(bisbas_drive ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-bas_drive_aov        <- aov(bisbas_drive ~ group, data = questionnaires) %>% broom::tidy()
+bas_drive_aov        <- aov(bisbas_drive ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_drive_var     <- var.test(bisbas_drive ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_drive_var    <- var.test(bisbas_drive ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_drive_tt      <- t.test(bisbas_drive ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -255,11 +255,11 @@ pwp_icb_drive_tt     <- t.test(bisbas_drive ~ group, data = pwp_icb_data, var.eq
 
 # fun seeking
 
-bas_fun_kw           <- kruskal.test(bisbas_fun ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_fun_mwu       <- wilcox.test(bisbas_fun ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_fun_mwu      <- wilcox.test(bisbas_fun ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+#bas_fun_kw           <- kruskal.test(bisbas_fun ~ group, data = questionnaires) %>% broom::tidy()
+#pwp_hc_fun_mwu       <- wilcox.test(bisbas_fun ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+#pwp_icb_fun_mwu      <- wilcox.test(bisbas_fun ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-bas_fun_aov          <- aov(bisbas_fun ~ group, data = questionnaires) %>% broom::tidy()
+bas_fun_aov          <- aov(bisbas_fun ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_fun_var       <- var.test(bisbas_fun ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_fun_var      <- var.test(bisbas_fun ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_fun_tt        <- t.test(bisbas_fun ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -267,15 +267,15 @@ pwp_icb_fun_tt       <- t.test(bisbas_fun ~ group, data = pwp_icb_data, var.equa
 
 # reward responsiveness
 
-bas_reward_kw        <- kruskal.test(bisbas_reward ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_reward_mwu    <- wilcox.test(bisbas_reward ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_reward_mwu   <- wilcox.test(bisbas_reward ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# bas_reward_kw        <- kruskal.test(bisbas_reward ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_reward_mwu    <- wilcox.test(bisbas_reward ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_reward_mwu   <- wilcox.test(bisbas_reward ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-bas_reward_aov       <- aov(bisbas_reward ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_reward_var    <- var.test(bisbas_reward ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_reward_var   <- var.test(bisbas_reward ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_reward_tt     <- t.test(bisbas_reward ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_reward_tt    <- t.test(bisbas_reward ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+bas_reward_aov       <- aov(log10_bisbas_reward ~ group, data = questionnaires_wide) %>% broom::tidy()
+pwp_hc_reward_var    <- var.test(log10_bisbas_reward ~ group, data = pwp_hc_data) %>% broom::tidy()
+pwp_icb_reward_var   <- var.test(log10_bisbas_reward ~ group, data = pwp_icb_data) %>% broom::tidy()
+pwp_hc_reward_tt     <- t.test(log10_bisbas_reward ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
+pwp_icb_reward_tt    <- t.test(log10_bisbas_reward ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
 
 ##########
 # UPPS-P # 
@@ -283,11 +283,11 @@ pwp_icb_reward_tt    <- t.test(bisbas_reward ~ group, data = pwp_icb_data, var.e
 
 # sensation seeking
 
-upps_ss_kw           <- kruskal.test(upps_sensation ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_upps_ss_mwu   <- wilcox.test(upps_sensation ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_upps_ss_mwu  <- wilcox.test(upps_sensation ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# upps_ss_kw           <- kruskal.test(upps_sensation ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_upps_ss_mwu   <- wilcox.test(upps_sensation ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_upps_ss_mwu  <- wilcox.test(upps_sensation ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-upps_ss_aov          <- aov(upps_sensation ~ group, data = questionnaires) %>% broom::tidy()
+upps_ss_aov          <- aov(upps_sensation ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_upps_ss_var   <- var.test(upps_sensation ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_upps_ss_var  <- var.test(upps_sensation ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_upps_ss_tt    <- t.test(upps_sensation ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -295,35 +295,35 @@ pwp_icb_upps_ss_tt   <- t.test(upps_sensation ~ group, data = pwp_icb_data, var.
 
 # neg urgency
 
-upps_neg_kw          <- kruskal.test(upps_neg ~ group, data = questionnaires) %>% broom::tidy()
+upps_neg_kw          <- kruskal.test(upps_neg ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_neg_mwu       <- wilcox.test(upps_neg ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 pwp_icb_neg_mwu      <- wilcox.test(upps_neg ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-upps_neg_aov         <- aov(upps_neg ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_neg_var       <- var.test(upps_neg ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_neg_var      <- var.test(upps_neg ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_neg_tt        <- t.test(upps_neg ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_neg_tt       <- t.test(upps_neg ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+# upps_neg_aov         <- aov(upps_neg ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_neg_var       <- var.test(upps_neg ~ group, data = pwp_hc_data) %>% broom::tidy()
+# pwp_icb_neg_var      <- var.test(upps_neg ~ group, data = pwp_icb_data) %>% broom::tidy()
+# pwp_hc_neg_tt        <- t.test(upps_neg ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
+# pwp_icb_neg_tt       <- t.test(upps_neg ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
 
 # premeditation
 
-upps_premed_kw       <- kruskal.test(upps_premed ~ group, data = questionnaires) %>% broom::tidy()
+upps_premed_kw       <- kruskal.test(upps_premed ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_premed_mwu    <- wilcox.test(upps_premed ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 pwp_icb_premed_mwu   <- wilcox.test(upps_premed ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-upps_premed_aov      <- aov(upps_premed ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_premed_var    <- var.test(upps_premed ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_premed_var   <- var.test(upps_premed ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_premed_tt     <- t.test(upps_premed ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_premed_tt    <- t.test(upps_premed ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+# upps_premed_aov      <- aov(upps_premed ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_premed_var    <- var.test(upps_premed ~ group, data = pwp_hc_data) %>% broom::tidy()
+# pwp_icb_premed_var   <- var.test(upps_premed ~ group, data = pwp_icb_data) %>% broom::tidy()
+# pwp_hc_premed_tt     <- t.test(upps_premed ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
+# pwp_icb_premed_tt    <- t.test(upps_premed ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
 
 # perseverance
 
-upps_pers_kw         <- kruskal.test(upps_pers ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_pers_mwu      <- wilcox.test(upps_pers ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
-pwp_icb_pers_mwu     <- wilcox.test(upps_pers ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# upps_pers_kw         <- kruskal.test(upps_pers ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_pers_mwu      <- wilcox.test(upps_pers ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
+# pwp_icb_pers_mwu     <- wilcox.test(upps_pers ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-upps_pers_aov        <- aov(upps_pers ~ group, data = questionnaires) %>% broom::tidy()
+upps_pers_aov        <- aov(upps_pers ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_pers_var      <- var.test(upps_pers ~ group, data = pwp_hc_data) %>% broom::tidy()
 pwp_icb_pers_var     <- var.test(upps_pers ~ group, data = pwp_icb_data) %>% broom::tidy()
 pwp_hc_pers_tt       <- t.test(upps_pers ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
@@ -331,12 +331,12 @@ pwp_icb_pers_tt      <- t.test(upps_pers ~ group, data = pwp_icb_data, var.equal
 
 # pos urgency
 
-upps_pos_kw          <- kruskal.test(upps_pos ~ group, data = questionnaires) %>% broom::tidy()
+upps_pos_kw          <- kruskal.test(upps_pos ~ group, data = questionnaires_wide) %>% broom::tidy()
 pwp_hc_pos_mwu       <- wilcox.test(upps_pos ~ group, data = pwp_hc_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 pwp_icb_pos_mwu      <- wilcox.test(upps_pos ~ group, data = pwp_icb_data, alternative = "two.sided", conf.int = TRUE) %>% broom::tidy()
 
-upps_pos_aov         <- aov(upps_pos ~ group, data = questionnaires) %>% broom::tidy()
-pwp_hc_pos_var       <- var.test(upps_pos ~ group, data = pwp_hc_data) %>% broom::tidy()
-pwp_icb_pos_var      <- var.test(upps_pos ~ group, data = pwp_icb_data) %>% broom::tidy()
-pwp_hc_pos_tt        <- t.test(upps_pos ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
-pwp_icb_pos_tt       <- t.test(upps_pos ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
+# upps_pos_aov         <- aov(upps_pos ~ group, data = questionnaires) %>% broom::tidy()
+# pwp_hc_pos_var       <- var.test(upps_pos ~ group, data = pwp_hc_data) %>% broom::tidy()
+# pwp_icb_pos_var      <- var.test(upps_pos ~ group, data = pwp_icb_data) %>% broom::tidy()
+# pwp_hc_pos_tt        <- t.test(upps_pos ~ group, data = pwp_hc_data, var.equal = TRUE) %>% broom::tidy()
+# pwp_icb_pos_tt       <- t.test(upps_pos ~ group, data = pwp_icb_data, var.equal = TRUE) %>% broom::tidy()
