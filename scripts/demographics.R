@@ -18,7 +18,7 @@ for(p in requiredPackages){
 # READ IN DATA #
 ################
 
-data_dir <- "NETWORK_PATH_REDACTED"
+data_dir <- "./Study 2_cross sectional/DATA/all_participant_data.xlsx"
 
 
 ### read in and tidy data

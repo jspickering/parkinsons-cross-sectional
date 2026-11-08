@@ -22,7 +22,7 @@ source("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/t
 # READ IN DATA #
 ################
 
-questionnaires_raw <- read_excel("NETWORK_PATH_REDACTED") %>%
+questionnaires_raw <- read_excel(".//Study 2_cross sectional/DATA/all_participant_data.xlsx") %>%
   clean_names() %>%
   drop_na(group) %>%
   select(

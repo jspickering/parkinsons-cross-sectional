@@ -37,7 +37,7 @@ exclusions <- tibble(
 ################
 
 ##### Access data from network drive
-data_dir <- "NETWORK_PATH_REDACTED" # file path to network drive
+data_dir <- "./Study 2_cross sectional/DATA/GNG/data" # file path to network drive
 groups <- c("PWP", "ICD", "OC", "YC") # specify groups
 group_dfs <- list() # create empty list to hold data for each group
 

@@ -32,8 +32,8 @@ exclusions <- tibble(
 # READ IN DATA #
 ################
 
-data_dir <- "./raw_data/balloon_analogue_risk_task_dummy" # dummy data for development
-data_dir <- "NETWORK_PATH_REDACTED" # file path to network drive
+#data_dir <- "./raw_data/balloon_analogue_risk_task_dummy" # dummy data for development
+data_dir <- "./Study 2_cross sectional/DATA/BART/data" # file path to network drive
 
 groups <- c("PwP", "ICD", "OC", "YC") # specify groups (these may need renaming to match the network drive folder names when switching to the real data)
 group_dfs <- list() # create empty list to hold data for each group
